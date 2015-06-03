@@ -14,5 +14,7 @@ Imports:
 LinkingTo:
     Rcpp,
     RcppArmadillo
-Suggests: testthat,
-    MCMCpack
+Suggests:
+    testthat,
+    MCMCpack,
+    foreign
