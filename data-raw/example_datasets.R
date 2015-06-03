@@ -1,12 +1,11 @@
 # Colonial Origins Example ===========================================
 
-# same dataset in each zip file on Acemoglu's website
-# we'll just download the first one: maketable1.dta
-download.file("http://economics.mit.edu/files/5197",
+# Our example is based on Table 4 of the paper
+download.file("http://economics.mit.edu/files/5136",
               "./data-raw/colonial.zip")
-unzip("./data-raw/colonial.zip", files = "maketable1.dta",
+unzip("./data-raw/colonial.zip", files = "maketable4.dta",
       exdir = "./data-raw")
-colonial <- foreign::read.dta("./data-raw/maketable1.dta")
+colonial <- foreign::read.dta("./data-raw/maketable4.dta")
 # Use the base sample of countries
 colonial <- subset(colonial, baseco == 1)
 devtools::use_data(colonial)
