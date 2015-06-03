@@ -30,7 +30,7 @@ system("rm ./data-raw/weber.zip")
 download.file("http://www.cengage.com/aise/economics/wooldridge_3e_datasets/textfiles.ZIP", "./data-raw/wooldridge.zip")
 unzip("./data-raw/wooldridge.zip", files = c("WAGE2.raw", "WAGE2.DES"), exdir = "./data-raw")
 
-wage2 <- read.table("./data-raw/WAGE2.raw")
+wage2 <- read.table("./data-raw/WAGE2.raw", na.strings = ".")
 # The columns names are explained in WAGE2.DES
 names(wage2) <- c("wage",    #monthly earnings
                   "hours",   #average weekly hours
