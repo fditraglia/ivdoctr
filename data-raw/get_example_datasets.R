@@ -8,6 +8,7 @@ unzip("./data-raw/colonial.zip", files = "maketable4.dta",
 colonial <- foreign::read.dta("./data-raw/maketable4.dta")
 # Use the base sample of countries
 colonial <- subset(colonial, baseco == 1)
+colonial$baseco <- NULL # drop this column since it isn't used in Table 4
 devtools::use_data(colonial)
 rm(colonial)
 system("rm ./data-raw/colonial.zip")
