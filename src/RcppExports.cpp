@@ -6,16 +6,6 @@
 
 using namespace Rcpp;
 
-// rcpp_hello
-List rcpp_hello();
-RcppExport SEXP ivdoctr_rcpp_hello() {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    __result = Rcpp::wrap(rcpp_hello());
-    return __result;
-END_RCPP
-}
 // rinvwish
 arma::cube rinvwish(int n, int v, arma::mat S);
 RcppExport SEXP ivdoctr_rinvwish(SEXP nSEXP, SEXP vSEXP, SEXP SSEXP) {

@@ -1,17 +1,18 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
-/*-------------------------------------------------------
-# Generate Draws from an Inverse Wishart Distribution
-# via the Bartlett Decomposition
-#--------------------------------------------------------
-# NOTE: output is identical to riwish from MCMCpack
-#       provided the same random seed is used
-#--------------------------------------------------------
-#   n     number of samples
-#   S     scale matrix
-#   v     degrees of freedom
-#-------------------------------------------------------*/
+//' Simulate draws from the inverse Wishart distribution
+//'
+//' @param n An integer, the number of draws.
+//' @param v An integer, the degrees of freedom of the distribution.
+//' @param S A numeric matrix, the scale matrix of the distribution.
+//' @return A numeric array of matrices, each of which is one simulation draw.
+//' @details Employs the Bartlett Decomposition (Smith & Hocking 1972).
+//' Output exactly matches that of riwish from the MCMCpack package if the same
+//' random seed is used.
+//' @examples
+//' M <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
+//' rinvwish(5, 10, M)
 // [[Rcpp::export]]
 arma::cube rinvwish(int n, int v, arma::mat S){
   RNGScope scope;
