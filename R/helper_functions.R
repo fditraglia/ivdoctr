@@ -62,13 +62,19 @@ covCLT <- function(inData, n_draws){
   x <- as.matrix(inData$x)
   y <- as.matrix(inData$y)
   z <- as.matrix(inData$z)
-  e1 <- lm.fit(x, y)$residuals
-  e2 <- lm.fit(z, y)$residuals
+  e1 <- lm.fit(x, y)$residuals # OLS resids
+  e2 <- lm.fit(z, y)$residuals # IV first-stage resids
   xe1 <- x * e1
   ze2 <- z * e2
   Omega <- cov(cbind(xe1, ze2)) / length(x)
   Sigma <- cov(inData)
   sims <- MASS::mvrnorm(n_draws, c(cov(x,y), cov(z,y)), Omega)
+  upper_det <- var(x) * var(y) - sims[,1]^2
+  if(any(upper_det <= 0)) stop("non-positive definite cov matrix generated (1)")
+  full_det <- cov(x,z) * (sims[,1] * sims[,2] - cov(x,z) * var(y)) -
+              sims[,2] * (var(x) * sims[,2] - cov(x,z) * sims[,1]) +
+              var(z) * upper_det
+  if(any(full_det <= 0)) stop("non-positive definite cov matrix generated (2)")
   g <- function(sim_row){
     out <- Sigma
     out[1,2] <- out[2,1] <- sim_row[1]
@@ -77,7 +83,5 @@ covCLT <- function(inData, n_draws){
   }
   Sigma_draws <- apply(sims, 1, g)
   dim(Sigma_draws) <- c(3, 3, n_draws)
-  pd <- apply(Sigma_draws, 3, function(M) all(eigen(M)$values > 0))
-  stopifnot(all(pd))
   return(Sigma_draws)
 }
