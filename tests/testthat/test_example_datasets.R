@@ -18,3 +18,26 @@ test_that("Replicate Table 4 of Acemoglu et al (2001)", {
   expect_equal(1, b(IV2))
   expect_equal(0.22, SE(IV2))
 })
+
+
+
+test_that("Replicate Tables II and III of Becker & Woessman (2009)", {
+  attach(weber)
+  b <- function(reg) as.numeric(round(coefficients(reg), 3)[2])
+  SE <- function(reg) round(summary(reg)$coefficients[2,2], 3)
+  controls <- c("f_young", "f_jew", "f_fem", "f_ortsgeb",
+                "f_pruss", "hhsize", "lnpop", "gpop",
+                "f_miss", "f_blind", "f_deaf", "f_dumb")
+  second_stage <- reformulate(c("f_prot", controls), "f_rw")
+  first_stage <- reformulate(c("kmwittenberg", controls))
+  OLS1 <- lm(f_rw ~ f_prot)
+  expect_equal(0.080, b(OLS1))
+  expect_equal(0.015, SE(OLS1))
+  OLS2 <- lm(second_stage)
+  expect_equal(0.099, b(OLS2))
+  expect_equal(0.010, SE(OLS2))
+  IV <- sem::tsls(second_stage, first_stage)
+  expect_equal(0.189, b(IV))
+  expect_equal(0.028, SE(IV))
+  detach(weber)
+})
