@@ -23,7 +23,57 @@
 
 #' Becker & Woessmann (2009) Dataset
 #'
-#' @description This is some data!
+#' @description Data on Prussian counties in 1871 from Becker & Woessmann's (2009) paper "Was Weber Wrong? A Human Capital Theory of Protestant Economic History."
+#' @format A data frame with 452 rows and 44 variables:
+#' \describe{
+#'    \item{kreiskey1871}{kreiskey1871}
+#'    \item{county1871}{County name in 1871}
+#'    \item{rbkey}{District key}
+#'    \item{lat_rad}{Latitude (in rad)}
+#'    \item{lon_rad}{Longitude (in rad)}
+#'    \item{kmwittenberg}{Distance to Wittenberg (in km)}
+#'    \item{zupreussen}{Year in which county was annexed by Prussia}
+#'    \item{hhsize}{Average household size}
+#'    \item{gpop}{Population growth from 1867-1871 in percentage points}
+#'    \item{f_prot}{Percent Protestants}
+#'    \item{f_jew}{Percent Jews}
+#'    \item{f_rw}{Percent literate}
+#'    \item{f_miss}{Percent missing education information}
+#'    \item{f_young}{Percent below the age of 10}
+#'    \item{f_fem}{Percent female}
+#'    \item{f_ortsgeb}{Percent born in municipality}
+#'    \item{f_pruss}{Percent of Prussian origin}
+#'    \item{f_blind}{Percent blind}
+#'    \item{f_deaf}{Percent deaf-mute}
+#'    \item{f_dumb}{Percent insane}
+#'    \item{f_urban}{Percent of county population in urban areas}
+#'    \item{lnpop}{Natural logarithm of total population size}
+#'    \item{lnkmb}{Natural logarithm of distance to Berlin (km)}
+#'    \item{poland}{Dummy variable, =1 if county is Polish-speaking}
+#'    \item{latlon}{Latitude * Longitude * 100}
+#'    \item{f_over_3km}{Percent of pupils farther than 3km from school}
+#'    \item{f_mine}{Percent of labor force employed in mining}
+#'    \item{inctaxpc}{Income tax revenue per capita in 1877}
+#'    \item{perc_secB}{Percentage of labor force employed in manufacturing in 1882}
+#'    \item{perc_secC}{Percentage of labor force employed in services in 1882}
+#'    \item{perc_secCnB}{Percentage of labor force employed in manufacturing and
+#'    services in 1882}
+#'    \item{lnyteacher}{100 * Natural logarithm of male elementary school
+#'    teachers in 1886}
+#'    \item{rhs}{Dummy variable, =1 if Imperial of Hanseatic city in 1517}
+#'    \item{yteacher}{Income of male elementary school teachers in 1886}
+#'    \item{yteacher}{Income of male elementary school teachers in 1886}
+#'    \item{pop}{Total population size}
+#'    \item{kmb}{Distance to Berlin (km)}
+#'    \item{uni1517}{Dummy variable, =1 if University in 1517}
+#'    \item{reichsstadt}{Dummy variable, =1 if Imperial city in 1517}
+#'    \item{hansestadt}{Dummy variable, =1 if Hanseatic city in 1517}
+#'    \item{f_cath}{Percentage of Catholics}
+#'    \item{sh_al_in_tot}{Share of municipalities beginning with letter A to L}
+#'    \item{ncloisters1517_pkm2}{Monasteries per square kilometer in 1517}
+#'    \item{school1517}{Dummy variable, =1 if school in 1517}
+#'    \item{dnpop1500}{City population in 1500}
+#'  }
 #' @source \url{https://www.cesifo-group.de/ifoHome/facts/iPEHD-Ifo-Prussian-Economic-History-Database/publications.html}
 #' @references \url{https://www.cesifo-group.de/ifoHome/facts/iPEHD-Ifo-Prussian-Economic-History-Database.html}
 #' \url{http://qje.oxfordjournals.org/content/124/2/531.short}
