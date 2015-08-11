@@ -59,17 +59,12 @@ covJeffreys <- function(inData, n_draws){
 #' covCLT(data.frame(x, y, z), 10)
 covCLT <- function(inData, n_draws){
   stopifnot(setequal(names(inData), c("x", "y", "z")))
-  x <- as.matrix(inData$x)
-  y <- as.matrix(inData$y)
-  z <- as.matrix(inData$z)
-  e1 <- lm.fit(x, y)$residuals # OLS resids
-  e2 <- lm.fit(z, y)$residuals # IV first-stage resids
-  xe1 <- x * e1
-  ze2 <- z * e2
-  Omega <- cov(cbind(xe1, ze2)) / length(x)
+  e_x <- lm(y ~ x, inData)$residuals
+  e_z <- lm(y ~ z, inData)$residuals
+  V <- cov(cbind(x * e_x, z * e_z))
   Sigma <- cov(inData)
-  sims <- MASS::mvrnorm(n_draws, c(cov(x,y), cov(z,y)), Omega)
-  upper_det <- var(x) * var(y) - sims[,1]^2
+  sims <- MASS::mvrnorm(n_draws, c(Sigma[1,2], Sigma[3,2]), V / length(e_z))
+  upper_det <- Sigma[1,1] * Sigma[2,2] - sims[,1]^2
   if(any(upper_det <= 0)) stop("non-positive definite cov matrix generated (1)")
   full_det <- cov(x,z) * (sims[,1] * sims[,2] - cov(x,z) * var(y)) -
               sims[,2] * (var(x) * sims[,2] - cov(x,z) * sims[,1]) +
