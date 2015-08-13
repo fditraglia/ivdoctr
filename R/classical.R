@@ -18,22 +18,6 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     stopifnot(all((prior$Rzu > -1) && (prior$Rzu < 1)))
   }
 
-  if(is.null(prior)){
-    K_L <- 0.01
-    K_U <- 1
-    Rxsu_L <- -0.99
-    Rxsu_U <- 0.99
-    Rzu_L <- -0.99
-    Rzu_U <- 0.99
-  }else{
-    K_L <- prior$K[1]
-    K_U <- prior$K[2]
-    Rxsu_L <- prior$Rxsu[1]
-    Rxsu_U <- prior$Rxsu[2]
-    Rzu_L <- prior$Rzu[1]
-    Rzu_U <- prior$Rzu[2]
-  }
-
   #Project out control regressors if present
   if(!is.null(controls)){
     y <- lm(reformulate(controls, response = y_name), data)$residuals
@@ -55,12 +39,36 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   Sigma_MLE <- cov(cbind(x,y,z))
   Rho_MLE <- cov2cor(Sigma_MLE)
 
-  # Convert prior on Kappa to prior on Kappa_tilde
+  if(is.null(prior)){
+    K_L <- 0.01
+    K_U <- 1
+    Rxsu_L <- -0.99
+    Rxsu_U <- 0.99
+    Rzu_L <- -0.99
+    Rzu_U <- 0.99
+  }else{
+    Rxsu_L <- prior$Rxsu[1]
+    Rxsu_U <- prior$Rxsu[2]
+    Rzu_L <- prior$Rzu[1]
+    Rzu_U <- prior$Rzu[2]
+    K_L <- prior$K[1]
+    K_U <- prior$K[2]
+    # Convert prior bounds on Kappa to prior bounds on Kappa_tilde
+    Ktilde_L <- (K_L - xRsq) / (1 - xRsq)
+    Ktilde_U <- (K_U - xRsq) / (1 - xRsq)
+  }
+
 
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
                           K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U)
+  MLE$Ktilde <- MLE$K
+  MLE$K <- NULL
+
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
                           K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U)
+  sim$Ktilde <- sim$K
+  sim$K <- NULL
+
 
   #--------------------------------------------------------------
   # Diagnose problems with first step (rejection sampler) at MLE
@@ -70,7 +78,15 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   #  the desired number of draws.
   if(MLE$step1eff == 0) stop("Rejection sampler efficiency < 10% at MLE")
 
-  # STILL NEED TO CONVERT BACK TO Kappa!
+  #CONVERT BACK TO Kappa!
+  toKappa <- function(Ktilde){
+    Ktilde * (1 - xRsq) + xRsq
+  }
+  MLE$K <- toKappa(MLE$Ktilde)
+  MLE$Ktilde <- NULL
+  sim$K <- toKappa(sim$Ktilde)
+  sim$Ktilde <- NULL
+
 
   # Format MLE output more nicely
   # and add additional quantities of interest
