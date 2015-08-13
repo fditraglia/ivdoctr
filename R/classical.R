@@ -55,6 +55,8 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   Sigma_MLE <- cov(cbind(x,y,z))
   Rho_MLE <- cov2cor(Sigma_MLE)
 
+  # Convert prior on Kappa to prior on Kappa_tilde
+
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
                           K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U)
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
@@ -68,18 +70,35 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   #  the desired number of draws.
   if(MLE$step1eff == 0) stop("Rejection sampler efficiency < 10% at MLE")
 
+  # STILL NEED TO CONVERT BACK TO Kappa!
+
   # Format MLE output more nicely
   # and add additional quantities of interest
   MLE$Sigma <- Sigma_MLE
   MLE$draws <- with(MLE, data.frame(K, Rxsu, Rzu, SuTilde, Ruv))
   MLE$K <- MLE$Rxsu <- MLE$Rzu <- MLE$SuTilde <- MLE$Ruv <- NULL
-  MLE$draws$Su <- with(MLE, draws$SuTilde / sqrt(Sigma[2,2]))
-  MLE$draws$Szu <- with(MLE, draws$Rzu * draws$Su * sqrt(Sigma[3,3]))
-  MLE$draws$Beta <- with(MLE, (Sigma[3,2] - draws$Su) / Sigma[3,1])
-  MLE$draws$SuTilde <- MLE$draws$Szu <- MLE$draws$Ruv <- NULL
+  MLE$draws$Su <- with(MLE, SuTilde2Su(Sigma, draws$SuTilde))
+  MLE$draws$Beta <- with(MLE, getBeta(Sigma, draws$Su, draws$Rzu))
+  MLE$draws$SuTilde <- MLE$draws$Ruv <- NULL
   MLE$diagnostic <- with(MLE, data.frame(Klower, step1eff, maxM))
   MLE$Klower <- MLE$step1eff <- MLE$maxM <- NULL
 
+  # Format sim output more nicely
+  # and add additional quantities of interest
+  sim_diagnostic <- with(sim, data.frame(Klower, step1eff, maxM))
+  sim$Klower <- sim$step1eff <- sim$maxM <- NULL
+  sim <- lapply(sim, toList)
+  sim$Sigma <- Sigma_draws
+  sim$Su <- with(sim, Map(SuTilde2Su, Sigma, SuTilde))
+  sim$Beta <- with(sim, Map(getBeta, Sigma, Su, Rzu))
+  sim$draws <- with(sim, data.frame(K = unlist(K), Rxsu = unlist(Rxsu),
+                                    Rzu = unlist(Rzu), Su = unlist(Su),
+                                    Beta = unlist(Beta)))
+  sim$draws_list <- with(sim, list(K = K, Rxsu = Rxsu, Rzu = Rzu,
+                                   Su = Su, Beta = Beta))
+  sim$diagnostic <- sim_diagnostic
+  sim$Rzu <- sim$Rxsu <- sim$K <- sim$SuTilde <-
+    sim$Ruv <- sim$Su <- sim$Beta <- NULL
 
   #-----------------------------------------------------------------------
   # Diagnose problems with first step (rejection sampler) at Sigma_draws
@@ -89,38 +108,13 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   #  the desired number of draws.
   step1fail_sim <- which(sim$step1eff == 0)
   if(length(step1fail_sim) > 0){
-
     warning(paste("Rejection sampler efficiency < 10% at",
                   length(step1fail_sim), "draws for Sigma"))
-
+    fail_Sigma <- sim$Sigma[step1fail_sim]
+    fail_diagnostic <- sim$diagnostic[step1fail_sim,]
+    sim$fail <- list(Sigma = fail_Sigma, diagnostic = fail_diagnostic)
   }
 
+  return(list(MLE = MLE, sim = sim))
 
-}
-
-getPosteriorSamples <- function(x, y, z,
-                                n_Sigma_draws = 1e2,
-                                n_IdentSet_draws = 1e3,
-                                n_M_max_draws = 1e4,
-                                K_bounds = c(0.2, 1),
-                                Rxsu_bounds = c(-0.9, 0.9),
-                                Rzu_bounds = c(-0.9, 0.9)){
-
-  # If there are control variables, work with kappa_tilde
-  # in the underlying C++ routine
-
-  # add in some sanity checks / coercion on inputs
-  inData <- cbind(x, y, z)
-  posterior <- postProcess(samplePosterior(inData, n_Sigma_draws,
-                              n_IdentSet_draws, n_M_max_draws,
-                              K_bounds[1], K_bounds[2],
-                              Rxsu_bounds[1], Rxsu_bounds[2],
-                              Rzu_bounds[1], Rzu_bounds[2]))
-
-  priorMLE <- postProcess(samplePosterior(inData, 1,
-                              n_IdentSet_draws, n_M_max_draws,
-                              K_bounds[1], K_bounds[2],
-                              Rxsu_bounds[1], Rxsu_bounds[2],
-                              Rzu_bounds[1], Rzu_bounds[2]))
-  return(list(posterior = posterior, priorMLE = priorMLE))
 }
