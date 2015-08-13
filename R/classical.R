@@ -34,8 +34,8 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   }
   Sigma_draws <- drawSigma(inData = data.frame(x=x, y=y, z=z), n_Sigma_draws)
   Sigma_draws <- toList(Sigma_draws)
-  Rho_draws <- lapply(Sigma, cov2cor)
-  Rho_draws_vech <- do.call(cbind, lapply(Rho, vech))
+  Rho_draws <- lapply(Sigma_draws, cov2cor)
+  Rho_draws_vech <- do.call(cbind, lapply(Rho_draws, vech))
   Sigma_MLE <- cov(cbind(x,y,z))
   Rho_MLE <- cov2cor(Sigma_MLE)
 
