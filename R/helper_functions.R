@@ -9,6 +9,46 @@ toList <- function(myArray){
   lapply(seq_len(dim(myArray)[3]), function(i) myArray[,,i,drop = TRUE])
 }
 
+SuTilde2Su <- function(S, SuTildeVec){
+#-------------------------------------------------------------
+# Convert Sigma_u_tilde to Sigma_u
+#-------------------------------------------------------------
+  Sy <- sqrt(S[2,2])
+  return(SuTildeVec / Sy)
+}
+
+getBetaIV <- function(S){
+#-------------------------------------------------------------
+# Given cov matrix S[x,y,z] calculate IV estimator
+#-------------------------------------------------------------
+  Sxz <- S[1,3]
+  Syz <- S[2,3]
+  return(Syz / Sxz)
+}
+
+getBetaOLS <- function(S){
+#-------------------------------------------------------------
+# Given cov matrix S[x,y,z] calculate OLS estimator
+#-------------------------------------------------------------
+  Sxy <- S[1,2]
+  Sx2 <- S[1,1]
+  return(Sxy / Sx2)
+}
+
+getBeta <- function(S, SuVec, RzuVec){
+#-------------------------------------------------------------
+# Given cov matrix S[x,y,z] and values for Sigma_u, Rho_zu
+# calculate the implied "true" Beta
+#-------------------------------------------------------------
+  BetaIV <- getBetaIV(S)
+  Sxz <- S[1,3]
+  Sz2 <- S[3,3]
+  PI <- Sxz / Sz2
+  numerator <- SuVec * RzuVec
+  denominator <- PI * sqrt(Sz2)
+  return(BetaIV - numerator / denominator)
+}
+
 #' Posterior draws for a cov matrix based on Jeffrey's prior
 #'
 #' @param inData A matrix or dataframe, each column of which is a variable and

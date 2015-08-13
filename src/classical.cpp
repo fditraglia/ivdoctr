@@ -1,4 +1,5 @@
 #include <RcppArmadilloExtensions/sample.h>
+#include "helper_functions.h"
 using namespace Rcpp;
 
 /*-------------------------------------------------------
@@ -35,13 +36,23 @@ solveRzu::solveRzu(double K, double Rxsu, arma::mat R){
 
 
 
-List samplePosterior(arma::cube Rho, int L, int n_M,
+// [[Rcpp::export]]
+List classicalSampler(arma::mat Rho_vech, int L, int n_M,
                      double K_L = 0.2, double K_U = 1,
                      double Rxsu_L = -0.9, double Rxsu_U = 0.9,
                      double Rzu_L = -0.9, double Rzu_U = 0.9){
 
+  // Rcpp doesn't support arma::cube as function argument
+  // so we pass a matrix each of whose columns is the vech
+  // of a Rho slice, and then devech them
+  int J = Rho_vech.n_cols;
+  arma::cube Rho(3, 3, J);
+  for(int i = 0; i < J; i++){
+    Rho.slice(i) = devech(Rho_vech.col(i), 3);
+  }
+
   int max_iter = n_M * 10;
-  int J = Rho.n_slices;
+
   Rcpp::IntegerVector indices = Rcpp::seq_len(n_M);
   arma::cube Rzu(L, 1, J, arma::fill::zeros);
   arma::cube Rxsu(L, 1, J, arma::fill::zeros);

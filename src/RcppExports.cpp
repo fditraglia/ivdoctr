@@ -6,6 +6,48 @@
 
 using namespace Rcpp;
 
+// classicalSampler
+List classicalSampler(arma::mat Rho_vech, int L, int n_M, double K_L, double K_U, double Rxsu_L, double Rxsu_U, double Rzu_L, double Rzu_U);
+RcppExport SEXP ivdoctr_classicalSampler(SEXP Rho_vechSEXP, SEXP LSEXP, SEXP n_MSEXP, SEXP K_LSEXP, SEXP K_USEXP, SEXP Rxsu_LSEXP, SEXP Rxsu_USEXP, SEXP Rzu_LSEXP, SEXP Rzu_USEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type Rho_vech(Rho_vechSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< int >::type n_M(n_MSEXP);
+    Rcpp::traits::input_parameter< double >::type K_L(K_LSEXP);
+    Rcpp::traits::input_parameter< double >::type K_U(K_USEXP);
+    Rcpp::traits::input_parameter< double >::type Rxsu_L(Rxsu_LSEXP);
+    Rcpp::traits::input_parameter< double >::type Rxsu_U(Rxsu_USEXP);
+    Rcpp::traits::input_parameter< double >::type Rzu_L(Rzu_LSEXP);
+    Rcpp::traits::input_parameter< double >::type Rzu_U(Rzu_USEXP);
+    __result = Rcpp::wrap(classicalSampler(Rho_vech, L, n_M, K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U));
+    return __result;
+END_RCPP
+}
+// vech
+arma::colvec vech(arma::mat M);
+RcppExport SEXP ivdoctr_vech(SEXP MSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type M(MSEXP);
+    __result = Rcpp::wrap(vech(M));
+    return __result;
+END_RCPP
+}
+// devech
+arma::mat devech(arma::colvec v, int dim);
+RcppExport SEXP ivdoctr_devech(SEXP vSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::colvec >::type v(vSEXP);
+    Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
+    __result = Rcpp::wrap(devech(v, dim));
+    return __result;
+END_RCPP
+}
 // rinvwish
 arma::cube rinvwish(int n, int v, arma::mat S);
 RcppExport SEXP ivdoctr_rinvwish(SEXP nSEXP, SEXP vSEXP, SEXP SSEXP) {
