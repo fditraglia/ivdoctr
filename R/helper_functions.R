@@ -14,7 +14,7 @@ SuTilde2Su <- function(S, SuTildeVec){
 # Convert Sigma_u_tilde to Sigma_u
 #-------------------------------------------------------------
   Sy <- sqrt(S[2,2])
-  return(SuTildeVec / Sy)
+  return(SuTildeVec * Sy)
 }
 
 getBetaIV <- function(S){
