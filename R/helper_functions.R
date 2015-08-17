@@ -99,8 +99,11 @@ covJeffreys <- function(inData, n_draws){
 #' covCLT(data.frame(x, y, z), 10)
 covCLT <- function(inData, n_draws){
   stopifnot(setequal(names(inData), c("x", "y", "z")))
-  e_x <- lm(y ~ x, inData)$residuals
-  e_z <- lm(y ~ z, inData)$residuals
+  x <- inData$x
+  y <- inData$y
+  z <- inData$z
+  e_x <- lm(y ~ x)$residuals
+  e_z <- lm(y ~ z)$residuals
   V <- cov(cbind(x * e_x, z * e_z))
   Sigma <- cov(inData)
   sims <- MASS::mvrnorm(n_draws, c(Sigma[1,2], Sigma[3,2]), V / length(e_z))
