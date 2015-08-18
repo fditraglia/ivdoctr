@@ -49,6 +49,8 @@ names(wage2) <- c("wage",    #monthly earnings
                   "meduc",   #mother's education
                   "feduc",   #father's education
                   "lwage")   #natural log of wage
+# Create age-squared for non-linear earnings profile
+wage2$age_sq <- wage2$age^2
 devtools::use_data(wage2)
 rm(wage2)
 system("rm ./data-raw/wooldridge.zip")
