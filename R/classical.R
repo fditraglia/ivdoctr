@@ -144,7 +144,7 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
   Rxz <- R[1,3]
   Rzy <- R[2,3]
   Rxsu <- seq(-0.99, 0.99, length.out = 30)
-  K <- seq(max(Rxy^2, Rxz^2) + 0.01, 1, length.out = 30)
+  K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 30)
 
   Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
   Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
@@ -182,8 +182,8 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
     prior$K <- (prior$K - xRsq)/(1 - xRsq)
     K_max <- min(1, max(prior$K))
     K_min <- max(max(Rxy^2, Rxz^2), min(prior$K))
-    K_limits <- c(K_min + 0.01, K_max)
-    K <- seq(K_min + 0.01, K_max, length.out = 30)
+    K_limits <- c(K_min + 0.05, K_max)
+    K <- seq(K_min + 0.05, K_max, length.out = 30)
   }
 
   Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
