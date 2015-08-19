@@ -153,7 +153,8 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
     prior$K <- (prior$K - xRsq) / (1 - xRsq)
     colors <- ifelse(in_prior(Sigma, Rxsu, K, prior), "blue", "red")
   }
-  persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = c(-1, 1),
+  Rzu_lim <- c(max(min(Rzu), -1), min(max(Rzu), 1))
+  persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_lim,
         theta = theta, phi = phi, xlab = "Cor(T*,u)", ylab = "Kappa",
         zlab = "Cor(z,u)", ticktype = "detailed", col = colors)
 }
