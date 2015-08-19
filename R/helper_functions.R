@@ -123,3 +123,57 @@ covCLT <- function(inData, n_draws){
   dim(Sigma_draws) <- c(3, 3, n_draws)
   return(Sigma_draws)
 }
+
+#======================= Helper functions for plotting
+
+get_Rzu <- function(Sigma, Rxsu, K){
+  R <- cov2cor(Sigma)
+  Rxy <- R[1,2]
+  Rxz <- R[1,3]
+  Rzy <- R[2,3]
+  A <- Rxsu * Rxz / sqrt(K)
+  B1 <- (Rxy * Rxz - K * Rzy)
+  B2 <- sqrt((1 - Rxsu^2) / (K * (K - Rxy^2)))
+  return(A - B1 * B2)
+}
+
+facet_val <- function(m){
+  (m[-1,-1] + m[-1, -ncol(m)] + m[-nrow(m),-1] + m[-nrow(m), -ncol(m)])/4
+}
+
+get_Su <- function(Sigma, Rxsu, K){
+  R <- cov2cor(Sigma)
+  Rxy <- R[1,2]
+  Rxz <- R[1,3]
+  Rzy <- R[2,3]
+  Sy <- sqrt(Sigma[2,2])
+  A <- Rxsu * Rxz / sqrt(K)
+  B1 <- (Rxy * Rxz - K * Rzy)
+  B2 <- sqrt((1 - Rxsu^2) / (K * (K - Rxy^2)))
+  Rzu <- A - B1 * B2
+  Su_tilde <- B1 / (sqrt(K) * Rxz * Rxsu - K * Rzu)
+  Su_tilde * Sy
+}
+
+
+positive_beta <- function(Sigma, Rxsu, K){
+  Sz <- sqrt(Sigma[3,3])
+  Sxz <- Sigma[1,3]
+  Rzu_facet <- facet_val(outer(Rxsu, K,
+                               function(Rxsu, K) get_Rzu(Sigma, Rxsu, K)))
+  Su_facet <- facet_val(outer(Rxsu, K,
+                              function(Rxsu, K) get_Su(Sigma, Rxsu, K)))
+  beta_facet <- Su_facet * Rzu_facet * Sz / Sxz
+  beta_facet > 0
+}
+
+in_prior <- function(Sigma, Rxsu, K, prior){
+  Rzu <- facet_val(outer(Rxsu, K,
+                         function(Rxsu, K) get_Rzu(Sigma, Rxsu, K)))
+  Rzu_in_prior <- (Rzu > min(prior$Rzu)) & (Rzu < max(prior$Rzu))
+  K <- facet_val(outer(rep(1, length(K)), K))
+  K_in_prior <- (K > min(prior$K)) & (K < max(prior$K))
+  Rxsu <- facet_val(outer(Rxsu, rep(1, length(Rxsu))))
+  Rxsu_in_prior <- (Rxsu > min(prior$Rxsu)) & (Rxsu < max(prior$Rxsu))
+  return(Rzu_in_prior & Rxsu_in_prior & K_in_prior)
+}

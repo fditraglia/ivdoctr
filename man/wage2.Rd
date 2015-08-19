@@ -14,6 +14,7 @@
    \item{exper}{years of work experience}
    \item{tenure}{years with current employer}
    \item{age}{age in years}
+   \item{age_sq}{age in years squared}
    \item{married}{=1 if married}
    \item{black}{=1 if black}
    \item{south}{=1 if live in south}
