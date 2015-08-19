@@ -147,13 +147,15 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
   K <- seq(max(Rxy^2, Rxz^2) + 0.01, 1, length.out = 30)
 
   Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
+  Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
+
   if(is.null(prior)){
     colors <- "blue"
   }else{
     prior$K <- (prior$K - xRsq) / (1 - xRsq)
     colors <- ifelse(in_prior(Sigma, Rxsu, K, prior), "blue", "red")
   }
-  Rzu_lim <- c(max(min(Rzu), -1), min(max(Rzu), 1))
+  Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
   persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_lim,
         theta = theta, phi = phi, xlab = "Cor(T*,u)", ylab = "Kappa",
         zlab = "Cor(z,u)", ticktype = "detailed", col = colors)
@@ -169,9 +171,9 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
   if(is.null(prior)){
     Rzu_limits <- c(-1,1)
     Rxsu_limits <- c(-0.99, 0.99)
-    K_limits <- c(max(Rxy^2, Rxz^2) + 0.01, 1)
+    K_limits <- c(max(Rxy^2, Rxz^2) + 0.05, 1)
     Rxsu <- seq(-0.99, 0.99, length.out = 30)
-    K <- seq(max(Rxy^2, Rxz^2) + 0.01, 1, length.out = 30)
+    K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 30)
   }else{
     Rxsu_min <- min(prior$Rxsu)
     Rxsu_max<- max(prior$Rxsu)
@@ -185,12 +187,14 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
   }
 
   Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
+  Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
+
   if(is.null(prior)){
-    Rzu_max <- min(max(Rzu), 1)
-    Rzu_min <- max(min(Rzu), -1)
+    Rzu_max <- min(max(Rzu, na.rm = TRUE), 1)
+    Rzu_min <- max(min(Rzu, na.rm = TRUE), -1)
   }else{
-    Rzu_max <- min(max(Rzu), 1, max(prior$Rzu))
-    Rzu_min <- max(min(Rzu), -1, min(prior$Rzu))
+    Rzu_max <- min(max(Rzu, na.rm = TRUE), 1, max(prior$Rzu))
+    Rzu_min <- max(min(Rzu, na.rm = TRUE), -1, min(prior$Rzu))
   }
   Rzu_limits <- c(Rzu_min, Rzu_max)
 
