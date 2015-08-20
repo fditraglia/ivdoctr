@@ -138,7 +138,8 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
 
 #============================== Functions for plotting the results
 
-plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
+plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
+                                TeX = FALSE){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
   Rxz <- R[1,3]
@@ -156,13 +157,25 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
     colors <- ifelse(in_prior(Sigma, Rxsu, K, prior), "blue", "red")
   }
   Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
+
+  if(TeX){
+    x_lab <- "$Cor(T^*,u)$"
+    y_lab <- "$\\kappa$"
+    z_lab <- "$Cor(z,u)$"
+  }else{
+    x_lab <- "Cor(T*,u)"
+    y_lab <- "Kappa"
+    z_lab <- "Cor(z,u)"
+  }
+
   persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_lim,
-        theta = theta, phi = phi, xlab = "Cor(T*,u)", ylab = "Kappa",
-        zlab = "Cor(z,u)", ticktype = "detailed", col = colors)
+        theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
+        zlab = z_lab, ticktype = "detailed", col = colors)
 }
 
 
-plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
+plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
+                               TeX = FALSE){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
   Rxz <- R[1,3]
@@ -200,8 +213,18 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
 
   colors <- ifelse(positive_beta(Sigma, Rxsu, K), "blue", "red")
 
+  if(TeX){
+    x_lab <- "$Cor(T^*,u)$"
+    y_lab <- "$\\kappa$"
+    z_lab <- "$Cor(z,u)$"
+  }else{
+    x_lab <- "Cor(T*,u)"
+    y_lab <- "Kappa"
+    z_lab <- "Cor(z,u)"
+  }
+
   persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_limits,
         xlim = Rxsu_limits, ylim = K_limits * (1 - xRsq) + xRsq,
-        theta = theta, phi = phi, xlab = "Cor(T*,u)", ylab = "Kappa",
-        zlab = "Cor(z,u)", ticktype = "detailed", col = colors)
+        theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
+        zlab = z_lab, ticktype = "detailed", col = colors)
 }
