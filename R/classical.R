@@ -138,29 +138,45 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
 
 #============================== Functions for plotting the results
 
-plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
+plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
+                                TeX = FALSE){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
   Rxz <- R[1,3]
   Rzy <- R[2,3]
-  Rxsu <- seq(-0.99, 0.99, length.out = 30)
-  K <- seq(max(Rxy^2, Rxz^2) + 0.01, 1, length.out = 30)
+  Rxsu <- seq(-0.99, 0.99, length.out = 50)
+  K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
 
   Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
+  Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
+
   if(is.null(prior)){
-    colors <- "blue"
+    colors <- "lightgreen"
   }else{
     prior$K <- (prior$K - xRsq) / (1 - xRsq)
-    colors <- ifelse(in_prior(Sigma, Rxsu, K, prior), "blue", "red")
+    colors <- ifelse(in_prior(Sigma, Rxsu, K, prior), "lightgreen", "indianred2")
   }
-  Rzu_lim <- c(max(min(Rzu), -1), min(max(Rzu), 1))
+  Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
+
+  if(TeX){
+    x_lab <- "$Cor(T^*,u)$"
+    y_lab <- "$\\kappa$"
+    z_lab <- "$Cor(z,u)$"
+  }else{
+    x_lab <- "Cor(T*,u)"
+    y_lab <- "Kappa"
+    z_lab <- "Cor(z,u)"
+  }
+
   persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_lim,
-        theta = theta, phi = phi, xlab = "Cor(T*,u)", ylab = "Kappa",
-        zlab = "Cor(z,u)", ticktype = "detailed", col = colors)
+        theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
+        zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
+        border = NA, bg = "white")
 }
 
 
-plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
+plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
+                               TeX = FALSE){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
   Rxz <- R[1,3]
@@ -169,35 +185,49 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi){
   if(is.null(prior)){
     Rzu_limits <- c(-1,1)
     Rxsu_limits <- c(-0.99, 0.99)
-    K_limits <- c(max(Rxy^2, Rxz^2) + 0.01, 1)
-    Rxsu <- seq(-0.99, 0.99, length.out = 30)
-    K <- seq(max(Rxy^2, Rxz^2) + 0.01, 1, length.out = 30)
+    K_limits <- c(max(Rxy^2, Rxz^2) + 0.05, 1)
+    Rxsu <- seq(-0.99, 0.99, length.out = 50)
+    K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
   }else{
     Rxsu_min <- min(prior$Rxsu)
     Rxsu_max<- max(prior$Rxsu)
     Rxsu_limits <- c(Rxsu_min, Rxsu_max)
-    Rxsu <- seq(Rxsu_min, Rxsu_max, length.out = 30)
+    Rxsu <- seq(Rxsu_min, Rxsu_max, length.out = 50)
     prior$K <- (prior$K - xRsq)/(1 - xRsq)
     K_max <- min(1, max(prior$K))
     K_min <- max(max(Rxy^2, Rxz^2), min(prior$K))
-    K_limits <- c(K_min + 0.01, K_max)
-    K <- seq(K_min + 0.01, K_max, length.out = 30)
+    K_limits <- c(K_min + 0.05, K_max)
+    K <- seq(K_min + 0.05, K_max, length.out = 50)
   }
 
   Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
+  Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
+
   if(is.null(prior)){
-    Rzu_max <- min(max(Rzu), 1)
-    Rzu_min <- max(min(Rzu), -1)
+    Rzu_max <- min(max(Rzu, na.rm = TRUE), 1)
+    Rzu_min <- max(min(Rzu, na.rm = TRUE), -1)
+    colors <- ifelse(positive_beta(Sigma, Rxsu, K), "dodgerblue2", "indianred2")
   }else{
-    Rzu_max <- min(max(Rzu), 1, max(prior$Rzu))
-    Rzu_min <- max(min(Rzu), -1, min(prior$Rzu))
+    Rzu_max <- min(max(Rzu, na.rm = TRUE), 1, max(prior$Rzu))
+    Rzu_min <- max(min(Rzu, na.rm = TRUE), -1, min(prior$Rzu))
+    colors <- ifelse(positive_beta(Sigma, Rxsu, K), "dodgerblue2", "lightgreen")
   }
   Rzu_limits <- c(Rzu_min, Rzu_max)
 
-  colors <- ifelse(positive_beta(Sigma, Rxsu, K), "blue", "red")
+
+  if(TeX){
+    x_lab <- "$Cor(T^*,u)$"
+    y_lab <- "$\\kappa$"
+    z_lab <- "$Cor(z,u)$"
+  }else{
+    x_lab <- "Cor(T*,u)"
+    y_lab <- "Kappa"
+    z_lab <- "Cor(z,u)"
+  }
 
   persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_limits,
         xlim = Rxsu_limits, ylim = K_limits * (1 - xRsq) + xRsq,
-        theta = theta, phi = phi, xlab = "Cor(T*,u)", ylab = "Kappa",
-        zlab = "Cor(z,u)", ticktype = "detailed", col = colors)
+        theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
+        zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
+        border = NA, bg = "white")
 }
