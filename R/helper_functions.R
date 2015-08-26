@@ -159,11 +159,13 @@ get_Su <- function(Sigma, Rxsu, K){
 positive_beta <- function(Sigma, Rxsu, K){
   Sz <- sqrt(Sigma[3,3])
   Sxz <- Sigma[1,3]
+  Szy <- Sigma[3,2]
+  beta_IV <- Szy / Sxz
   Rzu_facet <- facet_val(outer(Rxsu, K,
                                function(Rxsu, K) get_Rzu(Sigma, Rxsu, K)))
   Su_facet <- facet_val(outer(Rxsu, K,
                               function(Rxsu, K) get_Su(Sigma, Rxsu, K)))
-  beta_facet <- Su_facet * Rzu_facet * Sz / Sxz
+  beta_facet <- beta_IV - Su_facet * Rzu_facet * Sz / Sxz
   beta_facet > 0
 }
 
