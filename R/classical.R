@@ -159,9 +159,9 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
   Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
 
   if(TeX){
-    x_lab <- "$Cor(T^*,u)$"
+    x_lab <- "$\\rho_{T^*u}$"
     y_lab <- "$\\kappa$"
-    z_lab <- "$Cor(z,u)$"
+    z_lab <- "$\\rho_{uz}$"
   }else{
     x_lab <- "Cor(T*,u)"
     y_lab <- "Kappa"
@@ -216,15 +216,14 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
 
 
   if(TeX){
-    x_lab <- "$Cor(T^*,u)$"
+    x_lab <- "$\\rho_{T^*u}$"
     y_lab <- "$\\kappa$"
-    z_lab <- "$Cor(z,u)$"
+    z_lab <- "$\\rho_{uz}$"
   }else{
     x_lab <- "Cor(T*,u)"
     y_lab <- "Kappa"
     z_lab <- "Cor(z,u)"
   }
-
   persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_limits,
         xlim = Rxsu_limits, ylim = K_limits * (1 - xRsq) + xRsq,
         theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
