@@ -54,14 +54,29 @@ toKappa <- function(Ktilde, xRsq){
   Ktilde * (1 - xRsq) + xRsq
 }
 
+# Convert from K to Ktilde
+toKappaTilde <- function(K, xRsq){
+  (K - xRsq) / (1 - xRsq)
+}
+
 # Convert from RzuTilde to Rzu
 toRzu <- function(RzuTilde, zRsq){
    RzuTilde * sqrt(1 - zRsq)
- }
+}
+
+# Convert from Rzu to RzuTilde
+toRzuTilde <- function(Rzu, zRsq){
+  Rzu / sqrt(1 - zRsq)
+}
 
 # Convert from RxsuTilde to Rxsu
 toRxsu <- function(RxsuTilde, xRsq, Kappa){
    RxsuTilde * sqrt(1 - xRsq / Kappa)
+}
+
+# Convert from Rxsu to RxsuTilde
+toRxsuTilde <- function(Rxsu, xRsq, Kappa){
+  Rxsu / sqrt(1 - xRsq / Kappa)
 }
 
 #' Posterior draws for a cov matrix based on Jeffrey's prior
@@ -140,7 +155,6 @@ covCLT <- function(inData, n_draws){
 }
 
 #======================= Helper functions for plotting
-
 get_Rzu <- function(Sigma, Rxsu, K){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
@@ -150,6 +164,20 @@ get_Rzu <- function(Sigma, Rxsu, K){
   B1 <- (Rxy * Rxz - K * Rzy)
   B2 <- sqrt((1 - Rxsu^2) / (K * (K - Rxy^2)))
   return(A - B1 * B2)
+}
+
+get_Rzu_matrix <- function(Sigma, Rxsu, K){
+  n_Rxsu <- length(Rxsu)
+  n_K <- length(K)
+  Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
+  Rxsu <- outer(Rxsu, rep(1, n_K))
+  K <- outer(rep(1, n_Rxsu), K)
+  Rho <- cov2cor(Sigma)
+  Rxz <- Rho[1,3]
+  Ruv <- (Rxsu * sqrt(K) - Rzu * Rxz) / sqrt(K - Rxz^2)
+  Rzu <- ifelse(Ruv^2 + Rzu^2 < 1, Rzu, NA)
+  Rzu <- ifelse((Rzu> -1) & (Rzu< 1), Rzu, NA)
+  return(Rzu)
 }
 
 facet_val <- function(m){

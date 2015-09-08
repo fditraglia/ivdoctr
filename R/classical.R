@@ -164,7 +164,7 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
 
 #============================== Functions for plotting the results
 
-plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
+plot.full.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
                                 TeX = FALSE){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
@@ -173,16 +173,29 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
   Rxsu <- seq(-0.99, 0.99, length.out = 50)
   K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
 
-  Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
-  Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
+  # Calculate RzuTilde, NA if it violates unit circle restriction
+  # or it if lies outside (-1, 1)
+  Rzu <- get_Rzu_matrix(Sigma, Rxsu, K)
+
+  # We have been working with the transformed versions, i.e. "tilde"
+  KTilde <- K
+  RzuTilde <- Rzu
+  RxsuTilde <- Rxsu
+
+  # Transform Rzu, Rxsu, K to "non-tilde" versions
+  K <- toKappa(KTilde, xRsq)
+  Rzu <- toRzu(RzuTilde, zRsq)
+  Rxsu <- toRxsu(RxsuTilde, xRsq, K) #Kappa without tilde!
+
+  # Clean up!
+  rm(KTilde, RzuTilde, RxsuTilde)
 
   if(is.null(prior)){
     colors <- "lightgreen"
   }else{
-    prior$K <- (prior$K - xRsq) / (1 - xRsq)
     colors <- ifelse(in_prior(Sigma, Rxsu, K, prior), "lightgreen", "indianred2")
   }
-  Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
+
 
   if(TeX){
     x_lab <- "$\\rho_{T^*u}$"
@@ -194,14 +207,16 @@ plot.full.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
     z_lab <- "Cor(z,u)"
   }
 
-  persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_lim,
+  #Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
+
+  persp(Rxsu, K, Rzu,
         theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
         zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
         border = NA, bg = "white")
 }
 
 
-plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
+plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
                                TeX = FALSE){
   R <- cov2cor(Sigma)
   Rxy <- R[1,2]
@@ -209,37 +224,31 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
   Rzy <- R[2,3]
 
   if(is.null(prior)){
-    Rzu_limits <- c(-1,1)
-    Rxsu_limits <- c(-0.99, 0.99)
-    K_limits <- c(max(Rxy^2, Rxz^2) + 0.05, 1)
-    Rxsu <- seq(-0.99, 0.99, length.out = 50)
-    K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+    RxsuTilde <- seq(-0.99, 0.99, length.out = 50)
+    KTilde <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
   }else{
-    Rxsu_min <- min(prior$Rxsu)
-    Rxsu_max<- max(prior$Rxsu)
-    Rxsu_limits <- c(Rxsu_min, Rxsu_max)
-    Rxsu <- seq(Rxsu_min, Rxsu_max, length.out = 50)
-    prior$K <- (prior$K - xRsq)/(1 - xRsq)
-    K_max <- min(1, max(prior$K))
-    K_min <- max(max(Rxy^2, Rxz^2), min(prior$K))
-    K_limits <- c(K_min + 0.05, K_max)
-    K <- seq(K_min + 0.05, K_max, length.out = 50)
+    prior$KTilde <- toKappaTilde(prior$K, xRsq)
+    KTilde_max <- min(1, max(prior$KTilde))
+    KTilde_min <- max(max(Rxy^2, Rxz^2), min(prior$KTilde))
+    KTilde <- seq(KTilde_min + 0.05, KTilde_max, length.out = 50)
+
+    RxsuTilde_L <- toRxsuTilde(min(prior$Rxsu), xRsq, toKappa(KTilde_max, xRsq))
+    RxsuTilde_U <- toRxsuTilde(max(prior$Rxsu), xRsq, toKappa(KTilde_min, xRsq))
+    RxsuTilde <- seq(RxsuTilde_L, RxsuTilde_U, length.out = 50)
   }
 
-  Rzu <- outer(Rxsu, K, function(Rxsu, K) get_Rzu(Sigma, Rxsu, K))
-  Rzu <- ifelse((Rzu > -1) & (Rzu < 1), Rzu, NA)
+  # Calculate RzuTilde, NA if it violates unit circle restriction
+  # or it if lies outside (-1, 1)
+  RzuTilde <- get_Rzu_matrix(Sigma, RxsuTilde, KTilde)
 
+  # Color in region that maps to positive beta
   if(is.null(prior)){
-    Rzu_max <- min(max(Rzu, na.rm = TRUE), 1)
-    Rzu_min <- max(min(Rzu, na.rm = TRUE), -1)
-    colors <- ifelse(positive_beta(Sigma, Rxsu, K), "dodgerblue2", "indianred2")
+    colors <- ifelse(positive_beta(Sigma, RxsuTilde, KTilde),
+                     "dodgerblue2", "indianred2")
   }else{
-    Rzu_max <- min(max(Rzu, na.rm = TRUE), 1, max(prior$Rzu))
-    Rzu_min <- max(min(Rzu, na.rm = TRUE), -1, min(prior$Rzu))
-    colors <- ifelse(positive_beta(Sigma, Rxsu, K), "dodgerblue2", "lightgreen")
+    colors <- ifelse(positive_beta(Sigma, RxsuTilde, KTilde),
+                     "dodgerblue2", "lightgreen")
   }
-  Rzu_limits <- c(Rzu_min, Rzu_max)
-
 
   if(TeX){
     x_lab <- "$\\rho_{T^*u}$"
@@ -250,8 +259,23 @@ plot.pos.classical <- function(Sigma, xRsq, prior = NULL, theta, phi,
     y_lab <- "Kappa"
     z_lab <- "Cor(z,u)"
   }
-  persp(Rxsu, K * (1 - xRsq) + xRsq, Rzu, zlim = Rzu_limits,
-        xlim = Rxsu_limits, ylim = K_limits * (1 - xRsq) + xRsq,
+
+  # Convert to non-tilde
+  Rzu <- toRzu(RzuTilde, zRsq)
+  K <- toKappa(KTilde, xRsq)
+  Rxsu <- toRxsu(RxsuTilde, xRsq, K) #Not KTilde!
+  rm(RzuTilde, RxsuTilde, KTilde)
+
+  # Set up plot limits?
+#   Rzu_limits <- c(Rzu_min, Rzu_max)
+#     Rzu_max <- min(max(Rzu, na.rm = TRUE), 1, max(prior$Rzu))
+#     Rzu_min <- max(min(Rzu, na.rm = TRUE), -1, min(prior$Rzu))
+#     Rzu_max <- min(max(Rzu, na.rm = TRUE), 1)
+#     Rzu_min <- max(min(Rzu, na.rm = TRUE), -1)
+
+
+  # Plot non-tilde stuff
+  persp(Rxsu, K, Rzu,
         theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
         zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
         border = NA, bg = "white")
