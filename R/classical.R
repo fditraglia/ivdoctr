@@ -24,13 +24,15 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     xreg <- lm(reformulate(controls, response = x_name), data)
     x <- xreg$residuals
     xRsq <- summary(xreg)$r.squared
-    z <- lm(reformulate(controls, response = z_name), data)$residuals
+    zreg <- lm(reformulate(controls, response = z_name), data)
+    z <- zreg$residuals
+    zRsq <- summary(zreg)$r.squared
   }else{
     y <- get(y_name, data)
     x <- get(x_name, data)
-    xRsq <- 0 # No controls is the same as controls that are uncorrelated
-              # with the variable of interest
     z <- get(z_name, data)
+    xRsq <- zRsq <- 0 #No controls is the same as controls that are
+                      #uncorrelated with the regressor and instrument
   }
   Sigma_draws <- drawSigma(inData = data.frame(x=x, y=y, z=z), n_Sigma_draws)
   Sigma_draws <- toList(Sigma_draws)
@@ -53,21 +55,28 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     Rzu_U <- prior$Rzu[2]
     K_L <- prior$K[1]
     K_U <- prior$K[2]
-    # Convert prior bounds on Kappa to prior bounds on Kappa_tilde
-    Ktilde_L <- (K_L - xRsq) / (1 - xRsq)
-    Ktilde_U <- (K_U - xRsq) / (1 - xRsq)
   }
+
+  # Convert prior bounds on Kappa to prior bounds on Kappa_tilde
+  Ktilde_L <- max(xRsq + 0.01, (K_L - xRsq) / (1 - xRsq))
+  Ktilde_U <- max(1, (K_U - xRsq) / (1 - xRsq))
+  # Convert prior bounds on Rzu to prior bounds on Rzu_tilde
+  RzuTilde_L <- Rzu_L / sqrt(1 - zRsq)
+  RzuTilde_U <- Rzu_U / sqrt(1 - zRsq)
+  if((RzuTilde_L < -1) | (RzuTilde_L > 1)) RzuTilde_L <- -0.99
+  if((RzuTilde_U < -1) | (RzuTilde_U > 1)) RzuTilde_U <- 0.99
+  # Convert prior bounds on Rxsu to prior bounds on Rxsu_tilde
+  RxsuTilde_L <- Rxsu_L / sqrt(1 - xRsq / (Ktilde_U * (1 - xRsq) + xRsq))
+  RxsuTilde_U <- Rxsu_U / sqrt(1 - xRsq / (Ktilde_L * (1 - xRsq) + xRsq))
+  if((RxsuTilde_L < -1) | (RxsuTilde_L > 1)) RxsuTilde_L <- -0.99
+  if((RxsuTilde_U < -1) | (RxsuTilde_U > 1)) RxsuTilde_U <- 0.99
 
 
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U)
-  MLE$Ktilde <- MLE$K
-  MLE$K <- NULL
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq)
 
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U)
-  sim$Ktilde <- sim$K
-  sim$K <- NULL
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq)
 
 
   #--------------------------------------------------------------
@@ -78,15 +87,6 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   #  the desired number of draws.
   if(MLE$step1eff == 0) stop("Rejection sampler efficiency < 10% at MLE")
 
-  #CONVERT BACK TO Kappa!
-  toKappa <- function(Ktilde){
-    Ktilde * (1 - xRsq) + xRsq
-  }
-  MLE$K <- toKappa(MLE$Ktilde)
-  MLE$Ktilde <- NULL
-  sim$K <- toKappa(sim$Ktilde)
-  sim$Ktilde <- NULL
-
 
   # Format MLE output more nicely
   # and add additional quantities of interest
@@ -96,18 +96,38 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   MLE$draws$Su <- with(MLE, SuTilde2Su(Sigma, draws$SuTilde))
   MLE$draws$Beta <- with(MLE, getBeta(Sigma, draws$Su, draws$Rzu))
   MLE$draws$SuTilde <- MLE$draws$Ruv <- NULL
-  MLE$diagnostic <- with(MLE, data.frame(Klower, step1eff, maxM))
-  MLE$Klower <- MLE$step1eff <- MLE$maxM <- NULL
+  MLE$diagnostic <- with(MLE, data.frame(Klower, Rxsu_Upper, step1eff, maxM))
+  MLE$Klower <- MLE$step1eff <- MLE$maxM <- MLE$Rxsu_Upper <- NULL
   MLE$xRsq <- xRsq
+  MLE$zRsq <- zRsq
+  # Convert RxsuTilde, RzuTilde, Ktilde to non-tilde versions
+  MLE$draws$K <- toKappa(MLE$draws$K, MLE$xRsq)
+  MLE$draws$Rzu <- toRzu(MLE$draws$Rzu, MLE$zRsq)
+  MLE$draws$Rxsu <- toRxsu(MLE$draws$Rxsu, MLE$xRsq, MLE$draws$K) #Not Ktilde!
+  # Zeros to NAs if identified set is empty
+  if(MLE$diagnostic$maxM == 0) MLE$draws[] <- NA
 
   # Format sim output more nicely
   # and add additional quantities of interest
-  sim_diagnostic <- with(sim, data.frame(Klower, step1eff, maxM))
-  sim$Klower <- sim$step1eff <- sim$maxM <- NULL
+  sim_diagnostic <- with(sim, data.frame(Klower, Rxsu_Upper, step1eff, maxM))
+  sim$Klower <- sim$step1eff <- sim$maxM <- sim$Rxsu_Upper <- NULL
   sim <- lapply(sim, toList)
   sim$Sigma <- Sigma_draws
   sim$Su <- with(sim, Map(SuTilde2Su, Sigma, SuTilde))
   sim$Beta <- with(sim, Map(getBeta, Sigma, Su, Rzu))
+  # Convert RxsuTilde, RzuTilde, Ktilde to non-tilde versions
+  sim$K <- with(sim, Map(toKappa, K, xRsq))
+  sim$Rzu <- with(sim, Map(toRzu, Rzu, zRsq))
+  sim$Rxsu <- with(sim, Map(toRxsu, Rxsu, xRsq, K)) #Not Ktilde!
+  # Zeros to NAs if identified set is empty
+  empty_set <- which(sim_diagnostic$maxM == 0)
+  sim$Sigma <- NULL #don't want to overwrite these with NAs! Remove, re-attach
+  for(i in 1:length(sim)){
+    for(j in 1:length(empty_set)){
+      sim[[i]][[empty_set[j]]] <- rep(NA, n_IdentSet_draws)
+    }
+  }
+  sim$Sigma <- Sigma_draws
   sim$draws <- with(sim, data.frame(K = unlist(K), Rxsu = unlist(Rxsu),
                                     Rzu = unlist(Rzu), Su = unlist(Su),
                                     Beta = unlist(Beta)))
@@ -116,6 +136,10 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   sim$diagnostic <- sim_diagnostic
   sim$Rzu <- sim$Rxsu <- sim$K <- sim$SuTilde <-
     sim$Ruv <- sim$Su <- sim$Beta <- NULL
+
+
+
+
 
   #-----------------------------------------------------------------------
   # Diagnose problems with first step (rejection sampler) at Sigma_draws

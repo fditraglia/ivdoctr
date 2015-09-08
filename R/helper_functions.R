@@ -49,6 +49,21 @@ getBeta <- function(S, SuVec, RzuVec){
   return(BetaIV - numerator / denominator)
 }
 
+# Convert from Ktilde to K
+toKappa <- function(Ktilde, xRsq){
+  Ktilde * (1 - xRsq) + xRsq
+}
+
+# Convert from RzuTilde to Rzu
+toRzu <- function(RzuTilde, zRsq){
+   RzuTilde * sqrt(1 - zRsq)
+ }
+
+# Convert from RxsuTilde to Rxsu
+toRxsu <- function(RxsuTilde, xRsq, Kappa){
+   RxsuTilde * sqrt(1 - xRsq / Kappa)
+}
+
 #' Posterior draws for a cov matrix based on Jeffrey's prior
 #'
 #' @param inData A matrix or dataframe, each column of which is a variable and
