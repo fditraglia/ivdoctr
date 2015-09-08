@@ -207,9 +207,7 @@ plot.full.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
     z_lab <- "Cor(z,u)"
   }
 
-  #Rzu_lim <- c(max(min(Rzu, na.rm = TRUE), -1), min(max(Rzu, na.rm = TRUE), 1))
-
-  persp(Rxsu, K, Rzu,
+  persp(sort(Rxsu), sort(K), Rzu[order(Rxsu),order(K)],
         theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
         zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
         border = NA, bg = "white")
@@ -268,16 +266,11 @@ plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
   Rxsu <- toRxsu(RxsuTilde, xRsq, K) #Not KTilde!
   rm(RzuTilde, RxsuTilde, KTilde)
 
-  # Set up plot limits?
-#   Rzu_limits <- c(Rzu_min, Rzu_max)
-#     Rzu_max <- min(max(Rzu, na.rm = TRUE), 1, max(prior$Rzu))
-#     Rzu_min <- max(min(Rzu, na.rm = TRUE), -1, min(prior$Rzu))
-#     Rzu_max <- min(max(Rzu, na.rm = TRUE), 1)
-#     Rzu_min <- max(min(Rzu, na.rm = TRUE), -1)
-
-
-  # Plot non-tilde stuff
-  persp(Rxsu, K, Rzu,
+  # Plot non-tilde stuff: notice that we ensure ascending values for "x" and "y"
+  # and arrange "z" accordingly. This makes sure persp doesn't get confused.
+  # Note that our transformation for Rxsu can potentially give a non-monotonic
+  # order although this is unlikely
+  persp(sort(Rxsu), sort(K), Rzu[order(Rxsu),order(K)],
         theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
         zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
         border = NA, bg = "white")
