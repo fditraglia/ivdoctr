@@ -234,6 +234,8 @@ plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
 
     RxsuTilde_L <- toRxsuTilde(min(prior$Rxsu), xRsq, toKappa(KTilde_max, xRsq))
     RxsuTilde_U <- toRxsuTilde(max(prior$Rxsu), xRsq, toKappa(KTilde_min, xRsq))
+    if((RxsuTilde_L < -1) | (RxsuTilde_L > 1)) RxsuTilde_L <- -0.99
+    if((RxsuTilde_U < -1) | (RxsuTilde_U > 1)) RxsuTilde_U <- 0.99
     RxsuTilde <- seq(RxsuTilde_L, RxsuTilde_U, length.out = 50)
   }
 
