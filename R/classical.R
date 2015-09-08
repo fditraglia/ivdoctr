@@ -122,9 +122,11 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   # Zeros to NAs if identified set is empty
   empty_set <- which(sim_diagnostic$maxM == 0)
   sim$Sigma <- NULL #don't want to overwrite these with NAs! Remove, re-attach
-  for(i in 1:length(sim)){
-    for(j in 1:length(empty_set)){
-      sim[[i]][[empty_set[j]]] <- rep(NA, n_IdentSet_draws)
+  if(length(empty_set) > 0){
+    for(i in 1:length(sim)){
+      for(j in 1:length(empty_set)){
+        sim[[i]][[empty_set[j]]] <- rep(NA, n_IdentSet_draws)
+      }
     }
   }
   sim$Sigma <- Sigma_draws
