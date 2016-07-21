@@ -171,7 +171,9 @@ plot.full.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
   Rxz <- R[1,3]
   Rzy <- R[2,3]
   Rxsu <- seq(-0.99, 0.99, length.out = 50)
-  K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+  # K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+  K <- seq(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Rzy)/(1-(Rzy^2)), 1, length.out = 50)
+
 
   # Calculate RzuTilde, NA if it violates unit circle restriction
   # or it if lies outside (-1, 1)
@@ -223,12 +225,16 @@ plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
 
   if(is.null(prior)){
     RxsuTilde <- seq(-0.99, 0.99, length.out = 50)
-    KTilde <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+    # KTilde <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+    KTilde <- seq(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Rzy)/(1-(Rzy^2)), 1, length.out = 50)
+
   }else{
     prior$KTilde <- toKappaTilde(prior$K, xRsq)
     KTilde_max <- min(1, max(prior$KTilde))
-    KTilde_min <- max(max(Rxy^2, Rxz^2), min(prior$KTilde))
-    KTilde <- seq(KTilde_min + 0.05, KTilde_max, length.out = 50)
+    #KTilde_min <- max(max(Rxy^2, Rxz^2), min(prior$KTilde))
+    KTilde_min <- max(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Rzy)/(1-(Rzy^2)), min(prior$KTilde))
+    KTilde <- seq(KTilde_min, KTilde_max, length.out = 50)
+
 
     RxsuTilde_L <- toRxsuTilde(min(prior$Rxsu), xRsq, toKappa(KTilde_max, xRsq))
     RxsuTilde_U <- toRxsuTilde(max(prior$Rxsu), xRsq, toKappa(KTilde_min, xRsq))
