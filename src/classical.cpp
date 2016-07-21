@@ -69,10 +69,10 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
   for(int j = 0; j < J; j++){
     arma::mat Rhoj = Rho.slice(j);
     arma::vec K_bounds;
-    K_bounds << K_L << pow(Rhoj(0,1), 2.0) <<
-                       pow(Rhoj(0,2), 2.0) << arma::endr;
-    double K_Lower = arma::max(K_bounds);
-    K_lower_bound(j) = K_Lower;
+    // K_bounds << K_L << pow(Rhoj(0,1), 2.0) <<
+    //                   pow(Rhoj(0,2), 2.0) << arma::endr;
+    // double K_Lower = arma::max(K_bounds);
+    double K_Lower = arma::as_scalar(( Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(0,3))/(1-(Rhoj(0,3)*Rhoj(0,3))));
 
     // Account for control variables (if present) in bounds for draws of Rxsu
     double RxsuRAW_U = Rxsu_U * sqrt(1 - xRsq / (K_U * (1 - xRsq) + xRsq));
