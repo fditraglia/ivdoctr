@@ -72,7 +72,11 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
     // K_bounds << K_L << pow(Rhoj(0,1), 2.0) <<
     //                   pow(Rhoj(0,2), 2.0) << arma::endr;
     // double K_Lower = arma::max(K_bounds);
-    double K_Lower = arma::as_scalar(( Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(0,3))/(1-(Rhoj(0,3)*Rhoj(0,3))));
+  // K_bounds << K_L << Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(0,2) << arma::endr;
+    double K_Lower_Inf = (Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(1,2))/(1-Rhoj(1,2)*Rhoj(1,2));
+    K_bounds << K_L << arma::as_scalar(K_Lower_Inf) << arma::endr;
+    double K_Lower = arma::max(K_bounds);
+    K_lower_bound(j) = K_Lower;
 
     // Account for control variables (if present) in bounds for draws of Rxsu
     double RxsuRAW_U = Rxsu_U * sqrt(1 - xRsq / (K_U * (1 - xRsq) + xRsq));
