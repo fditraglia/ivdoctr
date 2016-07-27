@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // classicalSampler
-List classicalSampler(arma::mat Rho_vech, int L, int n_M, double K_L, double K_U, double Rxsu_L, double Rxsu_U, double Rzu_L, double Rzu_U, double xRsq);
-RcppExport SEXP ivdoctr_classicalSampler(SEXP Rho_vechSEXP, SEXP LSEXP, SEXP n_MSEXP, SEXP K_LSEXP, SEXP K_USEXP, SEXP Rxsu_LSEXP, SEXP Rxsu_USEXP, SEXP Rzu_LSEXP, SEXP Rzu_USEXP, SEXP xRsqSEXP) {
+List classicalSampler(arma::mat Rho_vech, int L, int n_M, double K_L, double K_U, double Rxsu_L, double Rxsu_U, double Rzu_L, double Rzu_U, double xRsq, bool weight_sampling);
+RcppExport SEXP ivdoctr_classicalSampler(SEXP Rho_vechSEXP, SEXP LSEXP, SEXP n_MSEXP, SEXP K_LSEXP, SEXP K_USEXP, SEXP Rxsu_LSEXP, SEXP Rxsu_USEXP, SEXP Rzu_LSEXP, SEXP Rzu_USEXP, SEXP xRsqSEXP, SEXP weight_samplingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -22,7 +22,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type Rzu_L(Rzu_LSEXP);
     Rcpp::traits::input_parameter< double >::type Rzu_U(Rzu_USEXP);
     Rcpp::traits::input_parameter< double >::type xRsq(xRsqSEXP);
-    __result = Rcpp::wrap(classicalSampler(Rho_vech, L, n_M, K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq));
+    Rcpp::traits::input_parameter< bool >::type weight_sampling(weight_samplingSEXP);
+    __result = Rcpp::wrap(classicalSampler(Rho_vech, L, n_M, K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq, weight_sampling));
     return __result;
 END_RCPP
 }

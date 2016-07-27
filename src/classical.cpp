@@ -41,7 +41,7 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
                      double K_L = 0.2, double K_U = 1,
                      double Rxsu_L = -0.9, double Rxsu_U = 0.9,
                      double Rzu_L = -0.9, double Rzu_U = 0.9,
-                     double xRsq = 0){
+                     double xRsq = 0, bool weight_sampling=true){
 
   // Rcpp doesn't support arma::cube as function argument
   // so we pass a matrix each of whose columns is the vech
@@ -126,20 +126,45 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
 
       // 2nd step: weighted resampling
       if(n_iter < max_iter){
-        //resampling probabilities
-        double max_Mj  = arma::max(M_temp);
-        arma::vec pM = M_temp / max_Mj;
-        arma::uvec rand_indices = as<arma::uvec>(
-                            RcppArmadillo::sample(indices, L, true,
-                              NumericVector(pM.begin(), pM.end())));
-        rand_indices = rand_indices - 1; //arma uses zero-indexing!
-        Rzu.slice(j) = Rzu_temp(rand_indices);
-        Rxsu.slice(j) = Rxsu_temp(rand_indices);
-        K.slice(j) = K_temp(rand_indices);
-        SuTilde.slice(j) = SuTilde_temp(rand_indices);
-        Ruv.slice(j) = Ruv_temp(rand_indices);
-        max_M(j) = max_Mj;
-        step1_efficiency(j) = double(n_M) / double(n_iter);
+
+        if(weight_sampling){
+
+          //resampling probabilities
+          double max_Mj  = arma::max(M_temp);
+          arma::vec pM = M_temp / max_Mj;
+          arma::uvec rand_indices = as<arma::uvec>(
+            RcppArmadillo::sample(indices, L, true,
+                                  NumericVector(pM.begin(), pM.end())));
+          rand_indices = rand_indices - 1; //arma uses zero-indexing!
+          Rzu.slice(j) = Rzu_temp(rand_indices);
+          Rxsu.slice(j) = Rxsu_temp(rand_indices);
+          K.slice(j) = K_temp(rand_indices);
+          SuTilde.slice(j) = SuTilde_temp(rand_indices);
+          Ruv.slice(j) = Ruv_temp(rand_indices);
+          max_M(j) = max_Mj;
+          step1_efficiency(j) = double(n_M) / double(n_iter);
+
+        } else {
+
+          Rcpp::IntegerVector rand_indices_list = Rcpp::seq_len(L);
+          arma::uvec rand_indices = as<arma::uvec>(rand_indices_list)-1;
+
+//           for(int val = 0; val < L; val++) {
+//             rand_indices(val) << val;
+//           }
+
+          double max_Mj  = arma::max(M_temp);
+          Rzu.slice(j) = Rzu_temp(rand_indices);
+          Rxsu.slice(j) = Rxsu_temp(rand_indices);
+          K.slice(j) = K_temp(rand_indices);
+          SuTilde.slice(j) = SuTilde_temp(rand_indices);
+          Ruv.slice(j) = Ruv_temp(rand_indices);
+          max_M(j) = max_Mj;
+          step1_efficiency(j) = double(n_M) / double(n_iter);
+
+        }
+
+
       }// end if
     }// end if
 

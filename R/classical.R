@@ -3,7 +3,7 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
                                      drawSigma = covCLT, prior = NULL,
                                      n_Sigma_draws = 1e3,
                                      n_M_max_draws = 1e4,
-                                     n_IdentSet_draws = 1e3){
+                                     n_IdentSet_draws = 1e3, weight_sampling = TRUE){
 
   #Check Inputs
   stopifnot(names(formals(drawSigma)) == c("inData", "n_draws"))
@@ -73,10 +73,10 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
 
 
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq)
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling)
 
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq)
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling)
 
 
   #--------------------------------------------------------------
