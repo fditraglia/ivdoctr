@@ -69,10 +69,6 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
   for(int j = 0; j < J; j++){
     arma::mat Rhoj = Rho.slice(j);
     arma::vec K_bounds;
-    // K_bounds << K_L << pow(Rhoj(0,1), 2.0) <<
-    //                   pow(Rhoj(0,2), 2.0) << arma::endr;
-    // double K_Lower = arma::max(K_bounds);
-  // K_bounds << K_L << Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(0,2) << arma::endr;
     double K_Lower_Inf = (Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(1,2))/(1-Rhoj(1,2)*Rhoj(1,2));
     K_bounds << K_L << arma::as_scalar(K_Lower_Inf) << arma::endr;
     double K_Lower = arma::max(K_bounds);
@@ -146,12 +142,9 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
 
         } else {
 
+          // Sampling without weights (Take first L draws)
           Rcpp::IntegerVector rand_indices_list = Rcpp::seq_len(L);
           arma::uvec rand_indices = as<arma::uvec>(rand_indices_list)-1;
-
-//           for(int val = 0; val < L; val++) {
-//             rand_indices(val) << val;
-//           }
 
           double max_Mj  = arma::max(M_temp);
           Rzu.slice(j) = Rzu_temp(rand_indices);
