@@ -75,9 +75,9 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
     K_lower_bound(j) = K_Lower;
 
     // Account for control variables (if present) in bounds for draws of Rxsu
-    double RxsuRAW_U = Rxsu_U * sqrt(1 - xRsq / (K_U * (1 - xRsq) + xRsq));
-    double Rxsu_Upper = RxsuRAW_U / sqrt(1 - xRsq /
-                                           (K_Lower * (1 - xRsq) + xRsq));
+    double RxsuRAW_U = Rxsu_U; //             * sqrt(1 - xRsq / (K_U * (1 - xRsq) + xRsq));
+    double Rxsu_Upper = RxsuRAW_U; //         / sqrt(1 - xRsq /
+                                  //         (K_Lower * (1 - xRsq) + xRsq));
     arma::vec Rxsu_bounds;
     Rxsu_bounds << Rxsu_Upper << Rxsu_U << arma::endr;
     Rxsu_Upper = arma::min(Rxsu_bounds);
