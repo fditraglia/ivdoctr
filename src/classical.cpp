@@ -41,7 +41,8 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
                      double K_L = 0.2, double K_U = 1,
                      double Rxsu_L = -0.9, double Rxsu_U = 0.9,
                      double Rzu_L = -0.9, double Rzu_U = 0.9,
-                     double xRsq = 0, bool weight_sampling=true){
+                     double xRsq = 0, bool weight_sampling=true,
+                     bool Su_U_infty = true, double Su_L=0, double Su_U=100){
 
   // Rcpp doesn't support arma::cube as function argument
   // so we pass a matrix each of whose columns is the vech
@@ -108,7 +109,14 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
         bool Rzu_constraint = (soln.Rzu < Rzu_U) &&
                               (soln.Rzu > Rzu_L);
 
-        if(Rzu_constraint && Ruv_constraint){
+        bool Su_constraint = true;
+        if( Su_U_infty ){
+          Su_constraint = (soln.Su >= Su_L);
+        } else {
+          Su_constraint = (soln.Su >= Su_L) && (soln.Su <= Su_U);
+        }
+
+        if(Rzu_constraint && Ruv_constraint && Su_constraint){
           Rzu_temp(M_count) = soln.Rzu;
           M_temp(M_count) = soln.M;
           Rxsu_temp(M_count) = Rxsu_sim;
