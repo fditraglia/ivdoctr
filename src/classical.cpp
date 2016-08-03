@@ -41,7 +41,7 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
                      double K_L = 0.2, double K_U = 1,
                      double Rxsu_L = -0.9, double Rxsu_U = 0.9,
                      double Rzu_L = -0.9, double Rzu_U = 0.9,
-                     double xRsq = 0){
+                     double xRsq = 0, bool weight_sampling=true){
 
   // Rcpp doesn't support arma::cube as function argument
   // so we pass a matrix each of whose columns is the vech
@@ -69,15 +69,15 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
   for(int j = 0; j < J; j++){
     arma::mat Rhoj = Rho.slice(j);
     arma::vec K_bounds;
-    K_bounds << K_L << pow(Rhoj(0,1), 2.0) <<
-                       pow(Rhoj(0,2), 2.0) << arma::endr;
+    double K_Lower_Inf = (Rhoj(0,1)*Rhoj(0,1)+Rhoj(0,2)*Rhoj(0,2)-2*Rhoj(0,1)*Rhoj(0,2)*Rhoj(1,2))/(1-Rhoj(1,2)*Rhoj(1,2));
+    K_bounds << K_L << arma::as_scalar(K_Lower_Inf) << arma::endr;
     double K_Lower = arma::max(K_bounds);
     K_lower_bound(j) = K_Lower;
 
     // Account for control variables (if present) in bounds for draws of Rxsu
-    double RxsuRAW_U = Rxsu_U * sqrt(1 - xRsq / (K_U * (1 - xRsq) + xRsq));
-    double Rxsu_Upper = RxsuRAW_U / sqrt(1 - xRsq /
-                                           (K_Lower * (1 - xRsq) + xRsq));
+    double RxsuRAW_U = Rxsu_U; //             * sqrt(1 - xRsq / (K_U * (1 - xRsq) + xRsq));
+    double Rxsu_Upper = RxsuRAW_U; //         / sqrt(1 - xRsq /
+                                  //         (K_Lower * (1 - xRsq) + xRsq));
     arma::vec Rxsu_bounds;
     Rxsu_bounds << Rxsu_Upper << Rxsu_U << arma::endr;
     Rxsu_Upper = arma::min(Rxsu_bounds);
@@ -122,20 +122,42 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
 
       // 2nd step: weighted resampling
       if(n_iter < max_iter){
-        //resampling probabilities
-        double max_Mj  = arma::max(M_temp);
-        arma::vec pM = M_temp / max_Mj;
-        arma::uvec rand_indices = as<arma::uvec>(
-                            RcppArmadillo::sample(indices, L, true,
-                              NumericVector(pM.begin(), pM.end())));
-        rand_indices = rand_indices - 1; //arma uses zero-indexing!
-        Rzu.slice(j) = Rzu_temp(rand_indices);
-        Rxsu.slice(j) = Rxsu_temp(rand_indices);
-        K.slice(j) = K_temp(rand_indices);
-        SuTilde.slice(j) = SuTilde_temp(rand_indices);
-        Ruv.slice(j) = Ruv_temp(rand_indices);
-        max_M(j) = max_Mj;
-        step1_efficiency(j) = double(n_M) / double(n_iter);
+
+        if(weight_sampling){
+
+          //resampling probabilities
+          double max_Mj  = arma::max(M_temp);
+          arma::vec pM = M_temp / max_Mj;
+          arma::uvec rand_indices = as<arma::uvec>(
+            RcppArmadillo::sample(indices, L, true,
+                                  NumericVector(pM.begin(), pM.end())));
+          rand_indices = rand_indices - 1; //arma uses zero-indexing!
+          Rzu.slice(j) = Rzu_temp(rand_indices);
+          Rxsu.slice(j) = Rxsu_temp(rand_indices);
+          K.slice(j) = K_temp(rand_indices);
+          SuTilde.slice(j) = SuTilde_temp(rand_indices);
+          Ruv.slice(j) = Ruv_temp(rand_indices);
+          max_M(j) = max_Mj;
+          step1_efficiency(j) = double(n_M) / double(n_iter);
+
+        } else {
+
+          // Sampling without weights (Take first L draws)
+          Rcpp::IntegerVector rand_indices_list = Rcpp::seq_len(L);
+          arma::uvec rand_indices = as<arma::uvec>(rand_indices_list)-1;
+
+          double max_Mj  = arma::max(M_temp);
+          Rzu.slice(j) = Rzu_temp(rand_indices);
+          Rxsu.slice(j) = Rxsu_temp(rand_indices);
+          K.slice(j) = K_temp(rand_indices);
+          SuTilde.slice(j) = SuTilde_temp(rand_indices);
+          Ruv.slice(j) = Ruv_temp(rand_indices);
+          max_M(j) = max_Mj;
+          step1_efficiency(j) = double(n_M) / double(n_iter);
+
+        }
+
+
       }// end if
     }// end if
 

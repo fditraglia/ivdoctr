@@ -3,7 +3,7 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
                                      drawSigma = covCLT, prior = NULL,
                                      n_Sigma_draws = 1e3,
                                      n_M_max_draws = 1e4,
-                                     n_IdentSet_draws = 1e3){
+                                     n_IdentSet_draws = 1e3, weight_sampling = TRUE){
 
   #Check Inputs
   stopifnot(names(formals(drawSigma)) == c("inData", "n_draws"))
@@ -61,22 +61,22 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   Ktilde_L <- max(xRsq + 0.01, (K_L - xRsq) / (1 - xRsq))
   Ktilde_U <- max(1, (K_U - xRsq) / (1 - xRsq))
   # Convert prior bounds on Rzu to prior bounds on Rzu_tilde
-  RzuTilde_L <- Rzu_L / sqrt(1 - zRsq)
-  RzuTilde_U <- Rzu_U / sqrt(1 - zRsq)
+  RzuTilde_L <- Rzu_L ## / sqrt(1 - zRsq)
+  RzuTilde_U <- Rzu_U ## / sqrt(1 - zRsq)
   if((RzuTilde_L < -1) | (RzuTilde_L > 1)) RzuTilde_L <- -0.99
   if((RzuTilde_U < -1) | (RzuTilde_U > 1)) RzuTilde_U <- 0.99
   # Convert prior bounds on Rxsu to prior bounds on Rxsu_tilde
-  RxsuTilde_L <- Rxsu_L / sqrt(1 - xRsq / (Ktilde_U * (1 - xRsq) + xRsq))
-  RxsuTilde_U <- Rxsu_U / sqrt(1 - xRsq / (Ktilde_L * (1 - xRsq) + xRsq))
+  RxsuTilde_L <- Rxsu_L ## / sqrt(1 - xRsq / (Ktilde_U * (1 - xRsq) + xRsq))
+  RxsuTilde_U <- Rxsu_U ## / sqrt(1 - xRsq / (Ktilde_L * (1 - xRsq) + xRsq))
   if((RxsuTilde_L < -1) | (RxsuTilde_L > 1)) RxsuTilde_L <- -0.99
   if((RxsuTilde_U < -1) | (RxsuTilde_U > 1)) RxsuTilde_U <- 0.99
 
 
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq)
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling)
 
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq)
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling)
 
 
   #--------------------------------------------------------------
@@ -171,7 +171,8 @@ plot.full.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
   Rxz <- R[1,3]
   Rzy <- R[2,3]
   Rxsu <- seq(-0.99, 0.99, length.out = 50)
-  K <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+  K <- seq(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Rzy)/(1-(Rzy^2)), 1, length.out = 50)
+
 
   # Calculate RzuTilde, NA if it violates unit circle restriction
   # or it if lies outside (-1, 1)
@@ -184,8 +185,8 @@ plot.full.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
 
   # Transform Rzu, Rxsu, K to "non-tilde" versions
   K <- toKappa(KTilde, xRsq)
-  Rzu <- toRzu(RzuTilde, zRsq)
-  Rxsu <- toRxsu(RxsuTilde, xRsq, K) #Kappa without tilde!
+  Rzu <- RzuTilde ## toRzu(RzuTilde, zRsq)
+  Rxsu <- RxsuTilde ##toRxsu(RxsuTilde, xRsq, K) #Kappa without tilde!
 
   # Clean up!
   rm(KTilde, RzuTilde, RxsuTilde)
@@ -223,15 +224,17 @@ plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
 
   if(is.null(prior)){
     RxsuTilde <- seq(-0.99, 0.99, length.out = 50)
-    KTilde <- seq(max(Rxy^2, Rxz^2) + 0.05, 1, length.out = 50)
+    KTilde <- seq(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Rzy)/(1-(Rzy^2)), 1, length.out = 50)
+
   }else{
     prior$KTilde <- toKappaTilde(prior$K, xRsq)
     KTilde_max <- min(1, max(prior$KTilde))
-    KTilde_min <- max(max(Rxy^2, Rxz^2), min(prior$KTilde))
-    KTilde <- seq(KTilde_min + 0.05, KTilde_max, length.out = 50)
+    KTilde_min <- max(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Rzy)/(1-(Rzy^2)), min(prior$KTilde))
+    KTilde <- seq(KTilde_min, KTilde_max, length.out = 50)
 
-    RxsuTilde_L <- toRxsuTilde(min(prior$Rxsu), xRsq, toKappa(KTilde_max, xRsq))
-    RxsuTilde_U <- toRxsuTilde(max(prior$Rxsu), xRsq, toKappa(KTilde_min, xRsq))
+
+    RxsuTilde_L <- min(prior$Rxsu) ## toRxsuTilde(min(prior$Rxsu), xRsq, toKappa(KTilde_max, xRsq))
+    RxsuTilde_U <- max(prior$Rxsu) ## toRxsuTilde(max(prior$Rxsu), xRsq, toKappa(KTilde_min, xRsq))
     if((RxsuTilde_L < -1) | (RxsuTilde_L > 1)) RxsuTilde_L <- -0.99
     if((RxsuTilde_U < -1) | (RxsuTilde_U > 1)) RxsuTilde_U <- 0.99
     RxsuTilde <- seq(RxsuTilde_L, RxsuTilde_U, length.out = 50)
@@ -261,9 +264,9 @@ plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
   }
 
   # Convert to non-tilde
-  Rzu <- toRzu(RzuTilde, zRsq)
+  Rzu <- RzuTilde ## toRzu(RzuTilde, zRsq)
   K <- toKappa(KTilde, xRsq)
-  Rxsu <- toRxsu(RxsuTilde, xRsq, K) #Not KTilde!
+  Rxsu <- RxsuTilde ## toRxsu(RxsuTilde, xRsq, K) #Not KTilde!
   rm(RzuTilde, RxsuTilde, KTilde)
 
   # Plot non-tilde stuff: notice that we ensure ascending values for "x" and "y"
