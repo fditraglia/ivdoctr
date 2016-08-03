@@ -9,13 +9,20 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   stopifnot(names(formals(drawSigma)) == c("inData", "n_draws"))
 
   if(!is.null(prior)){
-    stopifnot(all(names(prior) %in% c("K", "Rxsu", "Rzu")))
+    stopifnot(all(names(prior) %in% c("K", "Rxsu", "Rzu","Su")))
+
     stopifnot(length(prior$K) == 2)
     stopifnot(all((prior$K > 0) && (prior$K <= 1)))
     stopifnot(length(prior$Rxsu) == 2)
     stopifnot(all((prior$Rxsu > -1) && (prior$Rxsu < 1)))
     stopifnot(length(prior$Rzu) == 2)
     stopifnot(all((prior$Rzu > -1) && (prior$Rzu < 1)))
+
+    if(all("Su" %in% names(prior))) {
+      stopifnot(length(prior$Su) == 2)
+      stopifnot(all((prior$Su >= 0)) && (prior$Su[1] <= prior$Su[2]) )
+    }
+
   }
 
   #Project out control regressors if present
@@ -55,6 +62,25 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     Rzu_U <- prior$Rzu[2]
     K_L <- prior$K[1]
     K_U <- prior$K[2]
+
+    if(all("Su" %in% names(prior))) {
+
+      if( prior$Su[2] == Inf ){
+        Su_U_infty = TRUE
+        Su_L = prior$Su[1]
+        Su_U = 100
+      } else {
+        Su_U_infty = FALSE
+        Su_L = prior$Su[1]
+        Su_U = prior$Su[2]
+      }
+
+    } else {
+      Su_U_infty = TRUE
+      Su_L = 0
+      Su_U = 100
+    }
+
   }
 
   # Convert prior bounds on Kappa to prior bounds on Kappa_tilde
@@ -73,10 +99,10 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
 
 
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling)
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling,Su_U_infty,Su_L,Su_U)
 
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling)
+                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling,Su_U_infty,Su_L,Su_U)
 
 
   #--------------------------------------------------------------
@@ -95,15 +121,16 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   MLE$K <- MLE$Rxsu <- MLE$Rzu <- MLE$SuTilde <- MLE$Ruv <- NULL
   MLE$draws$Su <- with(MLE, SuTilde2Su(Sigma, draws$SuTilde))
   MLE$draws$Beta <- with(MLE, getBeta(Sigma, draws$Su, draws$Rzu))
-  MLE$draws$SuTilde <- MLE$draws$Ruv <- NULL
+  ## MLE$draws$SuTilde <- NULL
+  MLE$draws$Ruv <- NULL
   MLE$diagnostic <- with(MLE, data.frame(Klower, Rxsu_Upper, step1eff, maxM))
   MLE$Klower <- MLE$step1eff <- MLE$maxM <- MLE$Rxsu_Upper <- NULL
   MLE$xRsq <- xRsq
   MLE$zRsq <- zRsq
   # Convert RxsuTilde, RzuTilde, Ktilde to non-tilde versions
   MLE$draws$K <- toKappa(MLE$draws$K, MLE$xRsq)
-  MLE$draws$Rzu <- toRzu(MLE$draws$Rzu, MLE$zRsq)
-  MLE$draws$Rxsu <- toRxsu(MLE$draws$Rxsu, MLE$xRsq, MLE$draws$K) #Not Ktilde!
+  ## MLE$draws$Rzu <- toRzu(MLE$draws$Rzu, MLE$zRsq)
+  ## MLE$draws$Rxsu <- toRxsu(MLE$draws$Rxsu, MLE$xRsq, MLE$draws$K) #Not Ktilde!
   # Zeros to NAs if identified set is empty
   if(MLE$diagnostic$maxM == 0) MLE$draws[] <- NA
 
@@ -117,8 +144,8 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   sim$Beta <- with(sim, Map(getBeta, Sigma, Su, Rzu))
   # Convert RxsuTilde, RzuTilde, Ktilde to non-tilde versions
   sim$K <- with(sim, Map(toKappa, K, xRsq))
-  sim$Rzu <- with(sim, Map(toRzu, Rzu, zRsq))
-  sim$Rxsu <- with(sim, Map(toRxsu, Rxsu, xRsq, K)) #Not Ktilde!
+  ## sim$Rzu <- with(sim, Map(toRzu, Rzu, zRsq))
+  ## sim$Rxsu <- with(sim, Map(toRxsu, Rxsu, xRsq, K)) #Not Ktilde!
   # Zeros to NAs if identified set is empty
   empty_set <- which(sim_diagnostic$maxM == 0)
   sim$Sigma <- NULL #don't want to overwrite these with NAs! Remove, re-attach
