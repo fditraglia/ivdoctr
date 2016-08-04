@@ -9,7 +9,7 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   stopifnot(names(formals(drawSigma)) == c("inData", "n_draws"))
 
   if(!is.null(prior)){
-    stopifnot(all(names(prior) %in% c("K", "Rxsu", "Rzu","SuTIlde2")))
+    stopifnot(all(names(prior) %in% c("K", "Rxsu", "Rzu","SuTilde2")))
 
     stopifnot(length(prior$K) == 2)
     stopifnot(all((prior$K > 0) && (prior$K <= 1)))
@@ -18,9 +18,9 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     stopifnot(length(prior$Rzu) == 2)
     stopifnot(all((prior$Rzu > -1) && (prior$Rzu < 1)))
 
-    if(all("SuTIlde2" %in% names(prior))) {
-      stopifnot(length(prior$SuTIlde2) == 2)
-      stopifnot(all((prior$SuTIlde2 >= 0)) && (prior$SuTIlde2[1] <= prior$SuTIlde2[2]) )
+    if(all("SuTilde2" %in% names(prior))) {
+      stopifnot(length(prior$SuTilde2) == 2)
+      stopifnot(all((prior$SuTilde2 >= 0)) && (prior$SuTilde2[1] <= prior$SuTilde2[2]) )
     }
 
   }
@@ -63,16 +63,16 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     K_L <- prior$K[1]
     K_U <- prior$K[2]
 
-    if(all("SuTIlde2" %in% names(prior))) {
+    if(all("SuTilde2" %in% names(prior))) {
 
-      if( prior$SuTIlde2[2] == Inf ){
+      if( prior$SuTilde2[2] == Inf ){
         Su_U_infty = TRUE
-        Su_L = sqrt(prior$SuTIlde2[1])
+        Su_L = sqrt(prior$SuTilde2[1])
         Su_U = 100
       } else {
         Su_U_infty = FALSE
-        Su_L = sqrt(prior$SuTIlde2[1])
-        Su_U = sqrt(prior$SuTIlde2[2])
+        Su_L = sqrt(prior$SuTilde2[1])
+        Su_U = sqrt(prior$SuTilde2[2])
       }
 
     } else {
