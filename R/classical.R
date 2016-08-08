@@ -185,7 +185,15 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
     sim$fail <- list(Sigma = fail_Sigma, diagnostic = fail_diagnostic)
   }
 
-  return(list(MLE = MLE, sim = sim))
+  summary <- list()
+  summary$n <- nrow(na.omit(data,c(y_name,x_name,z_name,controls)))
+  summary$prior <- prior
+  summary$y_name <- y_name
+  summary$x_name <- x_name
+  summary$z_name <- z_name
+  summary$controls <- controls
+
+  return(list(MLE = MLE, sim = sim,summary = summary))
 
 }
 

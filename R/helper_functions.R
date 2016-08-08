@@ -17,6 +17,31 @@ SuTilde2Su <- function(S, SuTildeVec){
   return(SuTildeVec * Sy)
 }
 
+getUnderlineKappa <- function(S){
+  #-------------------------------------------------------------
+  # Given cov matrix S[x,y,z] calculate lower bound on kappa
+  #-------------------------------------------------------------
+  Rxz <- S[1,3]/(sqrt(S[1,1])*sqrt(S[3,3]))
+  Ryz <- S[2,3]/(sqrt(S[2,2])*sqrt(S[3,3]))
+  Rxy <- S[1,2]/(sqrt(S[1,1])*sqrt(S[2,2]))
+  return(((Rxy^2)+(Rxz^2)-2*Rxy*Rxz*Ryz)/(1-(Ryz^2)))
+}
+
+getRzuBounds_noprior<- function(S,underline_kappa){
+
+  Rho <- cov2cor(S)
+  Rxz <- Rho[1,3]
+  Ryz <- Rho[2,3]
+  Rxy <- Rho[1,2]
+  if( Rxy*Rxz - underline_kappa*Ryz < 0){
+    bounds <- c(-abs(Rxz)/sqrt(underline_kappa),1)
+  } else {
+    bounds <- c(-1,abs(Rxz))
+  }
+
+  return(bounds)
+}
+
 getBetaIV <- function(S){
 #-------------------------------------------------------------
 # Given cov matrix S[x,y,z] calculate IV estimator
