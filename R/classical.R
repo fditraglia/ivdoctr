@@ -186,7 +186,7 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   }
 
   summary <- list()
-  summary$n <- nrow(na.omit(data,c(y_name,x_name,z_name,controls)))
+  summary$n <- nrow(na.omit(subset(data,select=c(y_name,x_name,z_name,controls))))
   summary$prior <- prior
   summary$y_name <- y_name
   summary$x_name <- x_name
