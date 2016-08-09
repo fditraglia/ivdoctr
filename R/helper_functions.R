@@ -74,6 +74,82 @@ getBeta <- function(S, SuVec, RzuVec){
   return(BetaIV - numerator / denominator)
 }
 
+getBeta_min <- function(S,Rxsu_prior,K_prior){
+
+  #-------------------------------------------------------------
+  # Given cov matrix S[x,y,z] and priors over K and Rxsu
+  # calculate the analytical minimum for beta
+  #-------------------------------------------------------------
+
+  Rho <- cov2cor(S)
+  Rxz <- Rho[1,3]
+  Ryz <- Rho[2,3]
+  Rxy <- Rho[1,2]
+  underlineKappa <- getUnderlineKappa(S)
+
+  #### Calculate minimum
+  Rxsu_min <- Rxsu_prior[2]
+
+  if(Rxsu_min == 0) {
+    valid_k_min <- 0
+  } else {
+    alpha_min <- Rxsu_min / sqrt(1-(Rxsu_min^2))
+    k_min_interior <- ifelse(Rxy*alpha_min > 0, 2*(Rxy^2)/(1-((alpha_min^2+1)^(-0.5))),2*(Rxy^2)/(1+((alpha_min^2+1)^(-0.5))))
+    valid_k_min <- ( k_min_interior >= max(K_prior[1],underlineKappa) ) &  ( k_min_interior <= min(K_prior[2],1) )
+    Beta_int <- getBeta(S, get_Su(S, Rxsu_min, k_min_interior), get_Rzu(S, Rxsu_min, k_min_interior))
+  }
+
+  #=========== Evaluate Beta at candidate interior minimum and corners:
+  Beta_low <- getBeta(S, get_Su(S, Rxsu_min, max(K_prior[1],underlineKappa)), get_Rzu(S, Rxsu_min, max(K_prior[1],underlineKappa)))
+  Beta_high <- getBeta(S, get_Su(S, Rxsu_min, min(K_prior[2],1)), get_Rzu(S, Rxsu_min, min(K_prior[2],1)))
+
+  Beta_min <- ifelse(valid_k_min, min(Beta_low,Beta_int,Beta_high), min(Beta_low,Beta_high))
+
+  return(Beta_min)
+}
+
+getBeta_max <- function(S,Rxsu_prior,K_prior) {
+
+  #-------------------------------------------------------------
+  # Given cov matrix S[x,y,z] and priors over K and Rxsu
+  # calculate the analytical maximum for beta
+  #-------------------------------------------------------------
+
+  Rho <- cov2cor(S)
+  Rxz <- Rho[1,3]
+  Ryz <- Rho[2,3]
+  Rxy <- Rho[1,2]
+  underlineKappa <- getUnderlineKappa(S)
+
+  Rxsu_max <- Rxsu_prior[1]
+
+  if(Rxsu_max == 0){
+    valid_k_max <- FALSE
+  } else {
+    alpha_max <- Rxsu_max/ sqrt(1-(Rxsu_max^2))
+    k_max_interior <- ifelse(Rxy*alpha_max > 0, 2*(Rxy^2)/(1-((alpha_max^2+1)^(-0.5))),2*(Rxy^2)/(1+((alpha_max^2+1)^(-0.5))))
+    valid_k_max <- ( k_max_interior >= max(K_prior[1],underlineKappa) ) &  ( k_max_interior <= min(K_prior[2],1) )
+    Beta_int <- getBeta(S, get_Su(S, Rxsu_max, k_max_interior), get_Rzu(S, Rxsu_max, k_max_interior))
+  }
+
+  #=========== Evaluate Beta at candidate interior maximum and corners:
+  Beta_low <- getBeta(S, get_Su(S, Rxsu_max, max(K_prior[1],underlineKappa)), get_Rzu(S, Rxsu_max, max(K_prior[1],underlineKappa)))
+  Beta_high <- getBeta(S, get_Su(S, Rxsu_max, min(K_prior[2],1)), get_Rzu(S, Rxsu_max, min(K_prior[2],1)))
+
+  Beta_max <- ifelse(valid_k_max, max(Beta_low,Beta_int,Beta_high), max(Beta_low,Beta_high))
+
+  return(Beta_max)
+}
+
+
+getBeta_matrix <- function(Sigma, Rxsu, K) {
+  n_Rxsu <- length(Rxsu)
+  n_K <- length(K)
+  Beta <- outer(Rxsu, K, function(Rxsu, K) getBeta(Sigma, get_Su(Sigma, Rxsu, K), get_Rzu(Sigma, Rxsu, K)))
+  return(Beta)
+}
+
+
 # Convert from Ktilde to K
 toKappa <- function(Ktilde, xRsq){
   Ktilde * (1 - xRsq) + xRsq
