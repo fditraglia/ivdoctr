@@ -61,6 +61,7 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
   arma::cube K(L, 1, J, arma::fill::zeros);
   arma::cube SuTilde(L, 1, J, arma::fill::zeros);
   arma::cube Ruv(L, 1, J, arma::fill::zeros);
+  arma::cube Weights(L, 1, J, arma::fill::zeros);
   arma::vec K_lower_bound(J, arma::fill::zeros);
   arma::vec Rxsu_upper_bound(J, arma::fill::zeros);
   arma::vec max_M(J, arma::fill::zeros);
@@ -150,11 +151,13 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
 
         } else {
 
+          double max_Mj  = arma::max(M_temp);
+          arma::vec pM = M_temp / max_Mj;
+
           // Sampling without weights (Take first L draws)
           Rcpp::IntegerVector rand_indices_list = Rcpp::seq_len(L);
           arma::uvec rand_indices = as<arma::uvec>(rand_indices_list)-1;
 
-          double max_Mj  = arma::max(M_temp);
           Rzu.slice(j) = Rzu_temp(rand_indices);
           Rxsu.slice(j) = Rxsu_temp(rand_indices);
           K.slice(j) = K_temp(rand_indices);
@@ -179,5 +182,5 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
                       Named("Klower") = K_lower_bound,
                       Named("Rxsu_Upper") = Rxsu_upper_bound,
                       Named("step1eff") = step1_efficiency,
-                      Named("maxM") = max_M);
+                      Named("maxM") = max_M,
 }

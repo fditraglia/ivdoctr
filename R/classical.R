@@ -117,7 +117,7 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   # Format MLE output more nicely
   # and add additional quantities of interest
   MLE$Sigma <- Sigma_MLE
-  MLE$draws <- with(MLE, data.frame(K, Rxsu, Rzu, SuTilde, Ruv))
+  MLE$draws <- with(MLE, data.frame(K, Rxsu, Rzu, SuTilde, Ruv,Weights))
   MLE$K <- MLE$Rxsu <- MLE$Rzu <- MLE$SuTilde <- MLE$Ruv <- NULL
   MLE$draws$Su <- with(MLE, SuTilde2Su(Sigma, draws$SuTilde))
   MLE$draws$Beta <- with(MLE, getBeta(Sigma, draws$Su, draws$Rzu))
@@ -159,9 +159,9 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
   sim$Sigma <- Sigma_draws
   sim$draws <- with(sim, data.frame(K = unlist(K), Rxsu = unlist(Rxsu),
                                     Rzu = unlist(Rzu), Su = unlist(Su),
-                                    Beta = unlist(Beta)))
+                                    Beta = unlist(Beta),Weights = unlist(Weights)))
   sim$draws_list <- with(sim, list(K = K, Rxsu = Rxsu, Rzu = Rzu,
-                                   Su = Su, Beta = Beta))
+                                   Su = Su, Beta = Beta,Weights = unlist(Weights)))
   sim$diagnostic <- sim_diagnostic
   sim$Rzu <- sim$Rxsu <- sim$K <- sim$SuTilde <-
     sim$Ruv <- sim$Su <- sim$Beta <- NULL
