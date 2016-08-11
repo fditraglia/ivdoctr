@@ -148,6 +148,7 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
           Ruv.slice(j) = Ruv_temp(rand_indices);
           max_M(j) = max_Mj;
           step1_efficiency(j) = double(n_M) / double(n_iter);
+          Weights.slice(j) = M_temp(rand_indices)/max_Mj;
 
         } else {
 
@@ -165,6 +166,7 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
           Ruv.slice(j) = Ruv_temp(rand_indices);
           max_M(j) = max_Mj;
           step1_efficiency(j) = double(n_M) / double(n_iter);
+          Weights.slice(j) = M_temp(rand_indices)/max_Mj;
 
         }
 
@@ -183,4 +185,5 @@ List classicalSampler(arma::mat Rho_vech, int L, int n_M,
                       Named("Rxsu_Upper") = Rxsu_upper_bound,
                       Named("step1eff") = step1_efficiency,
                       Named("maxM") = max_M,
+                      Named("Weights") = Weights);
 }

@@ -311,5 +311,5 @@ plot.pos.classical <- function(Sigma, xRsq, zRsq, prior = NULL, theta, phi,
   persp(sort(Rxsu), sort(K), Rzu[order(Rxsu),order(K)],
         theta = theta, phi = phi, xlab = x_lab, ylab = y_lab,
         zlab = z_lab, ticktype = "detailed", col = colors, shade = 0.3,
-        border = NA, bg = "white")
+        border = NA, bg = "white", 0.75, 1.25)
 }
