@@ -36,7 +36,7 @@ getRzuBounds_noprior<- function(S,underline_kappa){
   if( Rxy*Rxz - underline_kappa*Ryz < 0){
     bounds <- c(-abs(Rxz)/sqrt(underline_kappa),1)
   } else {
-    bounds <- c(-1,abs(Rxz))
+    bounds <- c(-1,abs(Rxz)/sqrt(underline_kappa))
   }
 
   return(bounds)
