@@ -99,10 +99,10 @@ samplePosteriorClassical <- function(y_name, x_name, z_name,
 
 
   MLE <- classicalSampler(vech(Rho_MLE), n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling,Su_U_infty,Su_L,Su_U)
+                          Ktilde_L, Ktilde_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling,Su_U_infty,Su_L,Su_U)
 
   sim <- classicalSampler(Rho_draws_vech, n_IdentSet_draws, n_M_max_draws,
-                          K_L, K_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling,Su_U_infty,Su_L,Su_U)
+                          Ktilde_L, Ktilde_U, Rxsu_L, Rxsu_U, Rzu_L, Rzu_U, xRsq,weight_sampling,Su_U_infty,Su_L,Su_U)
 
 
   #--------------------------------------------------------------
