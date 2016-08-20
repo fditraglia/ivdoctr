@@ -40,24 +40,15 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data){
   r_Tz <- Rho['Tobs', 'z']
   r_zy <- Rho['z', 'y']
 
-  k_lower <- (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2)
+  k_tilde_lower <- (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2)
+  k_lower <- (1 - T_Rsq) * k_tilde_lower + T_Rsq
 
-
-  if (r_Ty * r_Tz < k_lower * r_zy){
-    r_uz_lower <- -1 * abs(r_Tz) / sqrt(k_lower)
+  if (r_Ty * r_Tz < k_tilde_lower * r_zy){
+    r_uz_lower <- -1 * abs(r_Tz) / sqrt(k_tilde_lower)
     r_uz_upper <- 1
   }else{
     r_uz_lower <- -1
-    r_uz_upper <- abs(r_Tz) / sqrt(k_lower)
-  }
-
-  # In the presence of covariates, report both the kappa bound on the original
-  # scale and on the transformed scale, after projecting out covariates
-  if(!is.null(controls)){
-    k_tilde_lower <- k_lower
-    k_lower <- (1 - T_Rsq) * k_tilde_lower + T_Rsq
-  }else{
-    k_tilde_lower <- NULL
+    r_uz_upper <- abs(r_Tz) / sqrt(k_tilde_lower)
   }
 
   list(n = nrow(data),
@@ -112,3 +103,33 @@ get_beta <- function(r_TstarU, k, obs){
   with(obs, (r_zy * sqrt(s2_y) - r_zu * s_u) / (r_Tz * sqrt(s2_T)))
 }
 
+
+get_beta_lower <- function(r_TstarU_min, k_min, k_max, obs){
+
+  # The minimum value of beta always occurs at r_TstarU_min but could be a
+  # corner solution or interior solution for kappa.
+
+  # Corner solution for kappa
+  beta_k_min <- get_beta(r_TstarU_min, k_min, obs)
+  beta_k_max <- get_beta(r_TstarU_min, k_max, obs)
+  beta_corner <- min(beta_k_min, beta_k_max)
+
+  if(Rxsu_min == 0) {
+    out <- min(Beta_low,Beta_high)
+  } else {
+    alpha_min <- Rxsu_min / sqrt(1-(Rxsu_min^2))
+    k_min_interior <- ifelse(Rxy*alpha_min > 0,
+                             2 * (Rxy^2) / (1 - ((alpha_min^2 + 1)^(-0.5))),
+                             2 * (Rxy^2) / (1 + ((alpha_min^2 + 1)^(-0.5))))
+    if((k_min_interior >= max(K_prior[1],underlineKappa)) &
+      (k_min_interior <= min(K_prior[2], 1))){
+      Beta_int <- getBeta(S, get_Su(S, Rxsu_min, k_min_interior),
+                        get_Rzu(S, Rxsu_min, k_min_interior))
+      out <-  min(Beta_low,Beta_int,Beta_high)
+    }else{
+      out <- min(Beta_low,Beta_high)
+    }
+  }
+
+  return(out)
+}
