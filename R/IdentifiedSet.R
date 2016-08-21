@@ -70,11 +70,11 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
        r_zy = r_zy)
 }
 
-get_k_tilde_lower <- function(obs){
+get_k_tilde_lower <- function(obs) {
   with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
 }
 
-get_k_lower <- function(obs){
+get_k_lower <- function(obs) {
   k_tilde_lower <- get_k_tilde_lower(obs)
   with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
 }
@@ -119,12 +119,12 @@ get_beta <- function(r_TstarU, k, obs) {
   with(obs, (r_zy * sqrt(s2_y) - r_uz * s_u) / (r_Tz * sqrt(s2_T)))
 }
 
-
+# This function is vectorized wrt k_min and and obs (k_max is always a scalar).
 get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
   # Minimum for beta always occurs at *MAXIMUM* for r_TstarU but could be a
   # corner value for kappa
-  beta_corner <- min(get_beta(r_TstarU_max, k_min, obs),
-                     get_beta(r_TstarU_max, k_max, obs))
+  beta_corner <- pmin(get_beta(r_TstarU_max, k_min, obs),
+                      get_beta(r_TstarU_max, k_max, obs))
 
   # If r_TstarU_max = 0, no need to check the interior solution
   if (identical(r_TstarU_max, 0)) {
@@ -133,22 +133,22 @@ get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
     C <- 1 / sqrt(1 + (r_TstarU_max^2 / (1 - r_TstarU_max^2)))
     k_interior <- with(obs, 2 * r_Ty^2 / (1 - sign(r_TstarU_max * r_Ty) * C))
 
-    # Only need to check beta_interior if k_interior is between k_min and k_max
-    if ((k_interior > k_min) && (k_interior < k_max)) {
-      beta_interior <- get_beta(r_TstarU_max, k_interior, obs)
-      out <- min(beta_corner, beta_interior)
-    } else {
-      out <- beta_corner
-    }
+    # It only makes sense to calculate beta_interior if k_interior is between
+    # k_min and k_max. If not, set it to Inf so it always exceeds beta_corner.
+    k_interior_is_valid <- (k_interior > k_min) & (k_interior < k_max)
+    beta_interior <- ifelse(k_interior_is_valid,
+                            get_beta(r_TstarU_max, k_interior, obs), Inf)
+    out <- pmin(beta_corner, beta_interior)
   }
   return(out)
 }
 
+# This function is vectorized wrt k_min and and obs (k_max is always a scalar).
 get_beta_upper <- function(r_TstarU_min, k_min, k_max, obs) {
   # Maximum for beta always occurs at *MINIMUM* for r_TstarU but could be a
   # corner value for kappa
-  beta_corner <- max(get_beta(r_TstarU_min, k_min, obs),
-                     get_beta(r_TstarU_min, k_max, obs))
+  beta_corner <- pmax(get_beta(r_TstarU_min, k_min, obs),
+                      get_beta(r_TstarU_min, k_max, obs))
 
   # If r_TstarU_min = 0, no need to check interior solution
   if(identical(r_TstarU_min, 0)) {
@@ -157,14 +157,12 @@ get_beta_upper <- function(r_TstarU_min, k_min, k_max, obs) {
     C <- 1 / sqrt(1 + (r_TstarU_min^2 / (1 - r_TstarU_min^2)))
     k_interior <- with(obs, 2 * r_Ty^2 / (1 + sign(r_TstarU_min * r_Ty) * C))
 
-    # Only need to check beta_interior if k_interior is between k_min and k_max
-    if ((k_interior > k_min) && (k_interior < k_max)){
-      beta_interior <- get_beta(r_TstarU_min, k_interior, obs)
-      out <- max(beta_corner, beta_interior)
-    } else {
-      out <- beta_corner
-    }
+    # It only makes sense to calculate beta_interior if k_interior is between
+    # k_min and k_max. If not, set it to -Inf so it never exceeds beta_corner.
+    k_interior_is_valid <- (k_interior > k_min) & (k_interior < k_max)
+    beta_interior <- ifelse(k_interior_is_valid,
+                            get_beta(r_TstarU_min, k_interior, obs), -Inf)
+    out <- pmax(beta_corner, beta_interior)
   }
   return(out)
 }
-
