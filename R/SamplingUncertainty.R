@@ -81,29 +81,56 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
             r_zy = r_zy)
 }
 
-draw_bounds <- function(r_TstarU_range, k_range = NULL,
-                        y_name, T_name, z_name, data, controls = NULL,
+draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
+                        r_TstarU_restriction = NULL, k_restriction = NULL,
                         n_draws = 5000, Jeffreys = FALSE) {
 
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
                                 n_draws, Jeffreys)
 
-  r_TstarU_min <- min(r_TstarU_range)
-  r_TstarU_max <- max(r_TstarU_range)
-
   k_tilde_lower <- get_k_tilde_lower(obs_draws)
-  k_lower <- get_k_lower(obs_draws)
-  r_uz_lower <- get_r_uz_lower(obs_draws)
-  r_uz_upper <- get_r_uz_upper(obs_draws)
 
-  if (!is.null(k_range)) {
-    k_min <- min(k_range)
-    k_max <- max(k_range)
+  if (!is.null(r_TstarU_restriction)) {
+
+    if (!is.null(k_restriction)) {
+      # User states beliefs over kappa but we work with kappa_tilde
+      T_Rsq <- obs_draws$T_Rsq[1] # All elements of obs_draws$T_Rsq are the same
+      k_min <- (min(k_restriction) - T_Rsq) / (1 - T_Rsq)
+      k_max <- (max(k_restriction) - T_Rsq) / (1 - T_Rsq)
+      k_min <- pmax(k_tilde_lower, k_min) # vector: could vary with obs_draws row
+      k_max <- min(1, k_max) # always a scalar
+    } else {
+      k_min <- k_tilde_lower # vector: varies with obs_draws row
+      k_max <- 1 # always a scalar
+    }
+
+    r_TstarU_min <- min(r_TstarU_restriction)
+    r_TstarU_max <- max(r_TstarU_restriction)
+    beta_lower <- get_beta_lower(r_TstarU_max, k_min, k_max, obs_draws)
+    beta_upper <- get_beta_upper(r_TstarU_min, k_min, k_max, obs_draws)
+
+    # Add calculation of tighter bounds for rho_uz that incorporate beliefs later
+    r_uz_lower_restricted <- rep(NA_real_, n_draws)
+    r_uz_upper_restricted <- rep(NA_real_, n_draws)
+
+    restricted <- data.frame(beta_lower = beta_lower,
+                             beta_upper = beta_upper,
+                             r_uz_lower = r_uz_lower_restricted,
+                             r_uz_upper = r_uz_upper_restricted)
   } else {
-
+    restricted <- NULL
   }
 
-  # Add calculation of tighter bounds for rho_uz that incorporate beliefs later
+  unrestricted = data.frame(k_tilde_lower = k_tilde_lower,
+                            k_lower = get_k_lower(obs_draws),
+                            r_uz_lower = get_r_uz_lower(obs_draws),
+                            r_uz_upper = get_r_uz_upper(obs_draws))
+
+  list(observables = obs_draws,
+       unrestricted = unrestricted,
+       k_restriction = k_restriction,
+       r_TstarU_restriction = r_TstarU_restriction,
+       restricted = restricted)
 }
 
 
