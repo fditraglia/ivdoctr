@@ -121,8 +121,7 @@ get_beta <- function(r_TstarU, k, obs) {
 
 # This function is vectorized wrt k_min and and obs (k_max is always a scalar).
 get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
-  # Minimum for beta always occurs at *MAXIMUM* for r_TstarU but could be a
-  # corner value for kappa
+  # min(beta) occurs at max(r_TstarU) but could be a corner value for kappa
   beta_corner <- pmin(get_beta(r_TstarU_max, k_min, obs),
                       get_beta(r_TstarU_max, k_max, obs))
 
@@ -145,8 +144,7 @@ get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
 
 # This function is vectorized wrt k_min and and obs (k_max is always a scalar).
 get_beta_upper <- function(r_TstarU_min, k_min, k_max, obs) {
-  # Maximum for beta always occurs at *MINIMUM* for r_TstarU but could be a
-  # corner value for kappa
+  # max(beta) occurs at min(r_TstarU) but could be a corner value for kappa
   beta_corner <- pmax(get_beta(r_TstarU_min, k_min, obs),
                       get_beta(r_TstarU_min, k_max, obs))
 
