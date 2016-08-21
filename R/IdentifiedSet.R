@@ -1,5 +1,5 @@
-get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
-# Move the regression stuff to a separate function
+get_estimates <- function(y_name, T_name, z_name, data, controls = NULL,
+                          robust = FALSE) {
   first_stage <- reformulate(c(z_name, controls), response = NULL)
   second_stage <- reformulate(c(T_name, controls), response = y_name)
   OLS <- lm(second_stage, data)
@@ -7,8 +7,23 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
 
   b_OLS <- coef(OLS)[T_name]
   b_IV <- coef(IV)[T_name]
-  se_OLS <- sqrt(diag(vcov(OLS)))[T_name]
-  se_IV <- sqrt(diag(vcov(IV)))[T_name]
+
+  if (robust) {
+    se_OLS <- sqrt(diag(sandwich::vcovHC(OLS, type = 'HC0')))[T_name]
+    se_IV <- sqrt(diag(sandwich::vcovHC(IV, type = 'HC0')))[T_name]
+  } else {
+    se_OLS <- sqrt(diag(vcov(OLS)))[T_name]
+    se_IV <- sqrt(diag(vcov(IV)))[T_name]
+  }
+
+  list(n = nrow(data),
+       b_OLS = b_OLS,
+       se_OLS = se_OLS,
+       b_IV = b_IV,
+       se_IV = se_IV)
+}
+
+get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
 
   # Project out control regressors if present
   if (!is.null(controls)) {
@@ -40,22 +55,8 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
   r_Tz <- Rho['Tobs', 'z']
   r_zy <- Rho['z', 'y']
 
-  k_tilde_lower <- (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2)
-  k_lower <- (1 - T_Rsq) * k_tilde_lower + T_Rsq
-
-  if (r_Ty * r_Tz < k_tilde_lower * r_zy) {
-    r_uz_lower <- -1 * abs(r_Tz) / sqrt(k_tilde_lower)
-    r_uz_upper <- 1
-  } else {
-    r_uz_lower <- -1
-    r_uz_upper <- abs(r_Tz) / sqrt(k_tilde_lower)
-  }
 
   list(n = nrow(data),
-       b_OLS = b_OLS,
-       se_OLS = se_OLS,
-       b_IV = b_IV,
-       se_IV = se_IV,
        T_Rsq = T_Rsq,
        z_Rsq = z_Rsq,
        s2_T = s2_T,
@@ -66,14 +67,31 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
        s_zy = s_zy,
        r_Ty = r_Ty,
        r_Tz = r_Tz,
-       r_zy = r_zy,
-       k_lower = k_lower,
-       k_tilde_lower = k_tilde_lower,
-       r_uz_lower = r_uz_lower,
-       r_uz_upper = r_uz_upper)
+       r_zy = r_zy)
 }
 
-get_r_zu <- function(r_TstarU, k, obs) {
+get_k_tilde_lower <- function(obs){
+  with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
+}
+
+get_k_lower <- function(obs){
+  k_tilde_lower <- get_k_tilde_lower(obs)
+  with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
+}
+
+get_r_uz_lower <- function(obs) {
+  k_tilde_lower <- get_k_tilde_lower(obs)
+  nontrivial_lower_bound <- with(obs, r_Ty * r_Tz < k_tilde_lower * r_zy)
+  ifelse(nontrivial_lower_bound, -1 * abs(obs$r_Tz) / sqrt(k_tilde_lower), -1)
+}
+
+get_r_uz_upper <- function(obs) {
+  k_tilde_lower <- get_k_tilde_lower(obs)
+  nontrivial_upper_bound <- with(obs, r_Ty * r_Tz >= k_tilde_lower * r_zy)
+  ifelse(nontrivial_upper_bound, abs(obs$r_Tz) / sqrt(k_tilde_lower), 1)
+}
+
+get_r_uz <- function(r_TstarU, k, obs) {
   A <- with(obs, r_TstarU * r_Tz / sqrt(k))
   B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
   B2 <- with(obs, sqrt((1 - r_TstarU^2) / (k * (k - r_Ty^2))))
@@ -96,19 +114,15 @@ get_s_u <- function(r_TstarU, k, obs) {
 }
 
 get_beta <- function(r_TstarU, k, obs) {
-  r_zu <- get_r_zu(r_TstarU, k, obs)
+  r_uz <- get_r_uz(r_TstarU, k, obs)
   s_u <- get_s_u(r_TstarU, k, obs)
-  with(obs, (r_zy * sqrt(s2_y) - r_zu * s_u) / (r_Tz * sqrt(s2_T)))
+  with(obs, (r_zy * sqrt(s2_y) - r_uz * s_u) / (r_Tz * sqrt(s2_T)))
 }
 
 
-get_beta_lower <- function(r_TstarU_range, k_range, obs) {
-  # Min for beta always occurs at *max* for r_TstarU
-  r_TstarU_max <- max(r_TstarU_range)
-  k_min <- min(k_range)
-  k_max <- max(k_range)
-
-  # Solution could be at a corner value for kappa
+get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
+  # Minimum for beta always occurs at *MAXIMUM* for r_TstarU but could be a
+  # corner value for kappa
   beta_corner <- min(get_beta(r_TstarU_max, k_min, obs),
                      get_beta(r_TstarU_max, k_max, obs))
 
@@ -130,13 +144,9 @@ get_beta_lower <- function(r_TstarU_range, k_range, obs) {
   return(out)
 }
 
-get_beta_upper <- function(r_TstarU_range, k_range, obs) {
-  # Max for beta always occurs at *min* for r_TstarU but could be interior or
-  r_TstarU_min <- min(r_TstarU_range)
-  k_min <- min(k_range)
-  k_max <- max(k_range)
-
-  # Solution could be at a corner for kappa
+get_beta_upper <- function(r_TstarU_min, k_min, k_max, obs) {
+  # Maximum for beta always occurs at *MINIMUM* for r_TstarU but could be a
+  # corner value for kappa
   beta_corner <- max(get_beta(r_TstarU_min, k_min, obs),
                      get_beta(r_TstarU_min, k_max, obs))
 
@@ -157,15 +167,4 @@ get_beta_upper <- function(r_TstarU_range, k_range, obs) {
   }
   return(out)
 }
-
-
-
-
-
-
-
-
-
-
-
 
