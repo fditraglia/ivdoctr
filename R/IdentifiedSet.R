@@ -1,5 +1,5 @@
 get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
-
+# Move the regression stuff to a separate function
   first_stage <- reformulate(c(z_name, controls), response = NULL)
   second_stage <- reformulate(c(T_name, controls), response = y_name)
   OLS <- lm(second_stage, data)
@@ -58,14 +58,12 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
        se_IV = se_IV,
        T_Rsq = T_Rsq,
        z_Rsq = z_Rsq,
-       Sigma = Sigma,
        s2_T = s2_T,
        s2_y = s2_y,
        s2_z = s2_z,
        s_Ty = s_Ty,
        s_Tz = s_Tz,
        s_zy = s_zy,
-       Rho = Rho,
        r_Ty = r_Ty,
        r_Tz = r_Tz,
        r_zy = r_zy,
