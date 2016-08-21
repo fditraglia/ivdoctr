@@ -1,4 +1,4 @@
-get_observables <- function(y_name, T_name, z_name, controls = NULL, data){
+get_observables <- function(y_name, T_name, z_name, controls = NULL, data) {
 
   first_stage <- reformulate(c(z_name, controls), response = NULL)
   second_stage <- reformulate(c(T_name, controls), response = y_name)
@@ -11,7 +11,7 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data){
   se_IV <- sqrt(diag(vcov(IV)))[T_name]
 
   # Project out control regressors if present
-  if (!is.null(controls)){
+  if (!is.null(controls)) {
     y <- resid(lm(reformulate(controls, response = y_name), data))
     T_reg <- lm(reformulate(controls, response = T_name), data)
     z_reg <- lm(reformulate(controls, response = z_name), data)
@@ -19,12 +19,12 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data){
     T_Rsq <- summary(T_reg)$r.squared
     z <- resid(z_reg)
     z_Rsq <- summary(z_reg)$r.squared
-  }else{
+  } else {
     y <- get(y_name, data)
     Tobs <- get(T_name, data)
     z <- get(z_name, data)
     T_Rsq <- z_Rsq <- 0 # No controls is the same as controls that are
-                                # uncorrelated with both Tobs and z
+                        # uncorrelated with both Tobs and z
   }
 
   Sigma <- cov(cbind(Tobs, y, z))
@@ -43,10 +43,10 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data){
   k_tilde_lower <- (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2)
   k_lower <- (1 - T_Rsq) * k_tilde_lower + T_Rsq
 
-  if (r_Ty * r_Tz < k_tilde_lower * r_zy){
+  if (r_Ty * r_Tz < k_tilde_lower * r_zy) {
     r_uz_lower <- -1 * abs(r_Tz) / sqrt(k_tilde_lower)
     r_uz_upper <- 1
-  }else{
+  } else {
     r_uz_lower <- -1
     r_uz_upper <- abs(r_Tz) / sqrt(k_tilde_lower)
   }
@@ -75,14 +75,14 @@ get_observables <- function(y_name, T_name, z_name, controls = NULL, data){
        r_uz_upper = r_uz_upper)
 }
 
-get_r_zu <- function(r_TstarU, k, obs){
+get_r_zu <- function(r_TstarU, k, obs) {
   A <- with(obs, r_TstarU * r_Tz / sqrt(k))
   B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
   B2 <- with(obs, sqrt((1 - r_TstarU^2) / (k * (k - r_Ty^2))))
   A - B1 * B2
 }
 
-get_M <- function(r_TstarU, k, obs){
+get_M <- function(r_TstarU, k, obs) {
   A <- with(obs, r_TstarU * r_Tz / sqrt(k))
   B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
   B2 <- with(obs, sqrt((1 - r_TstarU^2) / (k * (k - r_Ty^2))))
@@ -93,43 +93,81 @@ get_M <- function(r_TstarU, k, obs){
   sqrt(1 + dr_TstarU^2 + dk^2)
 }
 
-get_s_u <- function(r_TstarU, k, obs){
+get_s_u <- function(r_TstarU, k, obs) {
   with(obs, sqrt(s2_y * (k - r_Ty^2) / (k * (1 - r_TstarU^2))))
 }
 
-get_beta <- function(r_TstarU, k, obs){
+get_beta <- function(r_TstarU, k, obs) {
   r_zu <- get_r_zu(r_TstarU, k, obs)
   s_u <- get_s_u(r_TstarU, k, obs)
   with(obs, (r_zy * sqrt(s2_y) - r_zu * s_u) / (r_Tz * sqrt(s2_T)))
 }
 
 
-get_beta_lower <- function(r_TstarU_min, k_min, k_max, obs){
+get_beta_lower <- function(r_TstarU_range, k_range, obs) {
+  # Min for beta always occurs at *max* for r_TstarU
+  r_TstarU_max <- max(r_TstarU_range)
+  k_min <- min(k_range)
+  k_max <- max(k_range)
 
-  # The minimum value of beta always occurs at r_TstarU_min but could be a
-  # corner solution or interior solution for kappa.
+  # Solution could be at a corner value for kappa
+  beta_corner <- min(get_beta(r_TstarU_max, k_min, obs),
+                     get_beta(r_TstarU_max, k_max, obs))
 
-  # Corner solution for kappa
-  beta_k_min <- get_beta(r_TstarU_min, k_min, obs)
-  beta_k_max <- get_beta(r_TstarU_min, k_max, obs)
-  beta_corner <- min(beta_k_min, beta_k_max)
-
-  if(Rxsu_min == 0) {
-    out <- min(Beta_low,Beta_high)
+  # If r_TstarU_max = 0, no need to check the interior solution
+  if (identical(r_TstarU_max, 0)) {
+    out <- beta_corner
   } else {
-    alpha_min <- Rxsu_min / sqrt(1-(Rxsu_min^2))
-    k_min_interior <- ifelse(Rxy*alpha_min > 0,
-                             2 * (Rxy^2) / (1 - ((alpha_min^2 + 1)^(-0.5))),
-                             2 * (Rxy^2) / (1 + ((alpha_min^2 + 1)^(-0.5))))
-    if((k_min_interior >= max(K_prior[1],underlineKappa)) &
-      (k_min_interior <= min(K_prior[2], 1))){
-      Beta_int <- getBeta(S, get_Su(S, Rxsu_min, k_min_interior),
-                        get_Rzu(S, Rxsu_min, k_min_interior))
-      out <-  min(Beta_low,Beta_int,Beta_high)
-    }else{
-      out <- min(Beta_low,Beta_high)
+    C <- 1 / sqrt(1 + (r_TstarU_max^2 / (1 - r_TstarU_max^2)))
+    k_interior <- with(obs, 2 * r_Ty^2 / (1 - sign(r_TstarU_max * r_Ty) * C))
+
+    # Only need to check beta_interior if k_interior is between k_min and k_max
+    if ((k_interior > k_min) && (k_interior < k_max)) {
+      beta_interior <- get_beta(r_TstarU_max, k_interior, obs)
+      out <- min(beta_corner, beta_interior)
+    } else {
+      out <- beta_corner
     }
   }
-
   return(out)
 }
+
+get_beta_upper <- function(r_TstarU_range, k_range, obs) {
+  # Max for beta always occurs at *min* for r_TstarU but could be interior or
+  r_TstarU_min <- min(r_TstarU_range)
+  k_min <- min(k_range)
+  k_max <- max(k_range)
+
+  # Solution could be at a corner for kappa
+  beta_corner <- max(get_beta(r_TstarU_min, k_min, obs),
+                     get_beta(r_TstarU_min, k_max, obs))
+
+  # If r_TstarU_min = 0, no need to check interior solution
+  if(identical(r_TstarU_min, 0)) {
+    out <- beta_corner
+  } else {
+    C <- 1 / sqrt(1 + (r_TstarU_min^2 / (1 - r_TstarU_min^2)))
+    k_interior <- with(obs, 2 * r_Ty^2 / (1 + sign(r_TstarU_min * r_Ty) * C))
+
+    # Only need to check beta_interior if k_interior is between k_min and k_max
+    if ((k_interior > k_min) && (k_interior < k_max)){
+      beta_interior <- get_beta(r_TstarU_min, k_interior, obs)
+      out <- max(beta_corner, beta_interior)
+    } else {
+      out <- beta_corner
+    }
+  }
+  return(out)
+}
+
+
+
+
+
+
+
+
+
+
+
+
