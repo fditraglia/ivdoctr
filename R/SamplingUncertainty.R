@@ -28,7 +28,7 @@ draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
   return(Sigma_draws)
 }
 
-draw_observables <- function(y_name, T_name, z_name, controls = NULL, data,
+draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
                              n_draws = 5000, Jeffreys = FALSE) {
 
   # Project out control regressors if present
@@ -67,15 +67,6 @@ draw_observables <- function(y_name, T_name, z_name, controls = NULL, data,
   r_Tz <- s_Tz / (s_T * s_z)
   r_zy <- s_zy / (s_z * s_y)
 
-  k_tilde_lower <- (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2)
-  k_lower <- (1 - T_Rsq) * k_tilde_lower + T_Rsq
-
-  nontrivial_lower_bound <- r_Ty * r_Tz < k_tilde_lower * r_zy
-  r_uz_lower <- ifelse(nontrivial_lower_bound,
-                       -1 * abs(r_Tz) / sqrt(k_tilde_lower), -1)
-  r_uz_upper <- ifelse(nontrivial_lower_bound,
-                       1, abs(r_Tz) / sqrt(k_tilde_lower))
-
   data.frame(n = rep(nrow(data), n_draws),
             T_Rsq = rep(T_Rsq, n_draws),
             z_Rsq = rep(z_Rsq, n_draws),
@@ -87,9 +78,33 @@ draw_observables <- function(y_name, T_name, z_name, controls = NULL, data,
             s_zy = s_zy,
             r_Ty = r_Ty,
             r_Tz = r_Tz,
-            r_zy = r_zy,
-            k_lower = k_lower,
-            k_tilde_lower = k_tilde_lower,
-            r_uz_lower = r_uz_lower,
-            r_uz_upper = r_uz_upper)
+            r_zy = r_zy)
 }
+
+draw_bounds <- function(r_TstarU_range, k_range = NULL,
+                        y_name, T_name, z_name, data, controls = NULL,
+                        n_draws = 5000, Jeffreys = FALSE) {
+
+  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
+                                n_draws, Jeffreys)
+
+  r_TstarU_min <- min(r_TstarU_range)
+  r_TstarU_max <- max(r_TstarU_range)
+
+  k_tilde_lower <- get_k_tilde_lower(obs_draws)
+  k_lower <- get_k_lower(obs_draws)
+  r_uz_lower <- get_r_uz_lower(obs_draws)
+  r_uz_upper <- get_r_uz_upper(obs_draws)
+
+  if (!is.null(k_range)) {
+    k_min <- min(k_range)
+    k_max <- max(k_range)
+  } else {
+
+  }
+
+  # Add calculation of tighter bounds for rho_uz that incorporate beliefs later
+}
+
+
+
