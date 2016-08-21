@@ -91,6 +91,8 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
   k_tilde_lower <- get_k_tilde_lower(obs_draws)
 
   if (!is.null(r_TstarU_restriction)) {
+    r_TstarU_min <- min(r_TstarU_restriction)
+    r_TstarU_max <- max(r_TstarU_restriction)
 
     if (!is.null(k_restriction)) {
       # User states beliefs over kappa but we work with kappa_tilde
@@ -104,12 +106,19 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
       k_max <- 1 # always a scalar
     }
 
-    r_TstarU_min <- min(r_TstarU_restriction)
-    r_TstarU_max <- max(r_TstarU_restriction)
-    beta_lower <- get_beta_lower(r_TstarU_max, k_min, k_max, obs_draws)
-    beta_upper <- get_beta_upper(r_TstarU_min, k_min, k_max, obs_draws)
+    # We ensure above that but the user may have specified a k_max that is less
+    # than some elements of k_tilde_lower as in one of the examples for Colonial
+    # Origins from the paper. When this occurs, the identified set is empty and
+    # the bounds should be NA.
+    beta_lower <- beta_upper <- rep(NA_real_, n_draws)
+    empty <- k_max > k_tilde_lower
+    beta_lower[!empty] <- get_beta_lower(r_TstarU_max, k_min[!empty], k_max,
+                                         obs_draws[!empty, ])
+    beta_upper[!empty] <- get_beta_upper(r_TstarU_min, k_min[!empty], k_max,
+                                         obs_draws[!empty, ])
 
-    # Add calculation of tighter bounds for rho_uz that incorporate beliefs later
+    # Still need to add calculation of bounds for rho_uz that  incorporate
+    # beliefs. Again these should be NA if the identified set is empty.
     r_uz_lower_restricted <- rep(NA_real_, n_draws)
     r_uz_upper_restricted <- rep(NA_real_, n_draws)
 
