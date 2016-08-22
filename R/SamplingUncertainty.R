@@ -111,7 +111,7 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
     # Origins from the paper. When this occurs, the identified set is empty and
     # the bounds should be NA.
     beta_lower <- beta_upper <- rep(NA_real_, n_draws)
-    empty <- k_max > k_tilde_lower
+    empty <- k_max < k_tilde_lower
     beta_lower[!empty] <- get_beta_lower(r_TstarU_max, k_min[!empty], k_max,
                                          obs_draws[!empty, ])
     beta_upper[!empty] <- get_beta_upper(r_TstarU_min, k_min[!empty], k_max,
