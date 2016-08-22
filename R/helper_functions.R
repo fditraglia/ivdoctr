@@ -1,3 +1,9 @@
+collapse_3d_array <- function(myarray){
+  out <- aperm(myarray, c(1, 3, 2))
+  dim(out) <- c(dim(myarray)[1] * dim(myarray)[3], dim(myarray)[2])
+  return(out)
+}
+
 #' Convert 3-d array to list of matrixes
 #'
 #' @param myArray A three-dimensional numeric array.

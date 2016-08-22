@@ -108,34 +108,29 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
 
     # We ensure above that but the user may have specified a k_max that is less
     # than some elements of k_tilde_lower as in one of the examples for Colonial
-    # Origins from the paper. When this occurs, the identified set is empty and
-    # the bounds should be NA.
-    beta_lower <- beta_upper <- rep(NA_real_, n_draws)
+    # Origins from the paper. When this occurs, the identified set is empty.
     empty <- k_max < k_tilde_lower
-    beta_lower[!empty] <- get_beta_lower(r_TstarU_max, k_min[!empty], k_max,
-                                         obs_draws[!empty, ])
-    beta_upper[!empty] <- get_beta_upper(r_TstarU_min, k_min[!empty], k_max,
-                                         obs_draws[!empty, ])
 
-    # Still need to add calculation of bounds for rho_uz that  incorporate
-    # beliefs. Again these should be NA if the identified set is empty.
-    r_uz_lower_restricted <- rep(NA_real_, n_draws)
-    r_uz_upper_restricted <- rep(NA_real_, n_draws)
-
+    # Only compute the bounds for the non-empty identified sets
+    beta_lower <- get_beta_lower(r_TstarU_max, k_min[!empty], k_max,
+                                 obs_draws[!empty, ])
+    beta_upper <- get_beta_upper(r_TstarU_min, k_min[!empty], k_max,
+                                 obs_draws[!empty, ])
+    #rho_uz_lower_restricted <- # Not yet implemented
+    #rho_uz_upper_restricted <- # Not yet implemented
     restricted <- data.frame(beta_lower = beta_lower,
-                             beta_upper = beta_upper,
-                             r_uz_lower = r_uz_lower_restricted,
-                             r_uz_upper = r_uz_upper_restricted)
+                             beta_upper = beta_upper)
+                             #r_uz_lower = r_uz_lower_restricted,
+                             #r_uz_upper = r_uz_upper_restricted)
   } else {
     restricted <- NULL
   }
-
   unrestricted = data.frame(k_tilde_lower = k_tilde_lower,
                             k_lower = get_k_lower(obs_draws),
                             r_uz_lower = get_r_uz_lower(obs_draws),
                             r_uz_upper = get_r_uz_upper(obs_draws))
-
   list(observables = obs_draws,
+       empty = empty,
        unrestricted = unrestricted,
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
@@ -158,43 +153,43 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
   r_TstarU_min <- min(r_TstarU_restriction)
   r_TstarU_max <- max(r_TstarU_restriction)
 
-  column_names <- c('r_TstarU', 'k', 'r_uz', 's_u', 'beta')
-  posterior_draws <- array(NA_real_, dim = c(n_IS_draws, 5, n_RF_draws),
-                           dimnames = list(NULL, column_names, NULL))
-
   # The identified set is empty whenever (k_max < k_tilde_lower) in which case
-  # we don't make any posterior draws and leave the NAs
+  # we don't make any posterior draws
   empty <- k_max < k_tilde_lower
+  nonempty_sets <- which(!empty)
+  posterior_draws <- array(NA_real_, dim = c(n_IS_draws, 5, sum(!empty)))
 
-  for (i in 1:n_RF_draws) {
+  # Separate index for third dimension of posterior_draws
+  posterior_draws_index <- 1
+  for (i in nonempty_sets) {
 
-    if (!empty[i]) {
+    obs <- obs_draws[i, ]
+    k_tilde <- runif(n_IS_draws, k_min[i], k_max)
+    r_TstarU <- runif(n_IS_draws, r_TstarU_min, r_TstarU_max)
 
-      obs <- obs_draws[i,]
-      k_tilde <- runif(n_IS_draws, k_min[i], k_max)
-      r_TstarU <- runif(n_IS_draws, r_TstarU_min, r_TstarU_max)
-
-      if (resample) {
-        M <- get_M(r_TstarU, k_tilde, obs)
-        # Note: weights for sample need *not* sum to one
-        random_indices <- sample(seq_len(n_IS_draws), size = n_IS_draws,
-                                 replace = TRUE, prob = M / max(M))
-        k_tilde <- k_tilde[random_indices]
-        r_TstarU <- r_TstarU[random_indices]
-      }
-
-      r_uz <- get_r_uz(r_TstarU, k_tilde, obs)
-      s_u <- get_s_u(r_TstarU, k_tilde, obs)
-      beta <- get_beta(r_TstarU, k_tilde, obs)
-      k <- with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
-      posterior_draws[, , i] <- cbind(r_TstarU, k, r_uz, s_u, beta)
+    if (resample) {
+      M <- get_M(r_TstarU, k_tilde, obs)
+      # Note: weights for sample need *not* sum to one
+      random_indices <- sample(seq_len(n_IS_draws), size = n_IS_draws,
+                               replace = TRUE, prob = M / max(M))
+      k_tilde <- k_tilde[random_indices]
+      r_TstarU <- r_TstarU[random_indices]
     }
+
+    posterior_draws[, , posterior_draws_index] <- cbind(
+        r_TstarU,
+        with(obs, (1 - T_Rsq[1]) * k_tilde + T_Rsq[1]), # kappa
+        get_r_uz(r_TstarU, k_tilde, obs),
+        get_s_u(r_TstarU, k_tilde, obs),
+        get_beta(r_TstarU, k_tilde, obs))
+    posterior_draws_index <- posterior_draws_index + 1
   }
-  posterior_draws <- toList(posterior_draws)
-  posterior_draws <- lapply(posterior_draws, function(x) as.data.frame(x))
-  posterior_draws[empty] <- NA # Only store a single NA rather than matrix
+  posterior_draws <- collapse_3d_array(posterior_draws)
+  colnames(posterior_draws) <- c('r_TstarU', 'k', 'r_uz', 's_u', 'beta')
+  posterior_draws <- as.data.frame(posterior_draws)
 
   list(observables = obs_draws,
+       empty = empty,
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
        posterior = posterior_draws)

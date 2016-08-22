@@ -30,11 +30,30 @@ get_HPDI <- function(draws, level = 0.9) {
   return(data.frame(lower = lower, median = median(draws), upper = upper))
 }
 
-summarize_bounds <- function(bounds_draws) {
-  # unrestricted <- bounds_draws$unrestricted
-  # restricted <- bounds_draws$restricted
-  # rbind(k_lower = get_HPDI(unrestricted$k_lower),
-  #       r_uz_lower = get_HPDI(unrestricted$r_uz_lower),
-  #       r_uz_upper = get_HPDI(unrestricted$r_uz_upper),
-
+summarize_bounds <- function(draws) {
+  unrestricted <- with(draws$unrestricted,
+                       rbind(k_lower = get_HPDI(k_lower),
+                             r_uz_lower = get_HPDI(r_uz_lower),
+                             r_uz_upper = get_HPDI(r_uz_upper)))
+  # Add in restricted r_uz_lower and upper bounds later:
+  restricted <- with(draws$restricted,
+                     rbind(beta_lower = get_HPDI(beta_lower),
+                           beta_upper = get_HPDI(beta_upper)))
+  list(unrestricted = unrestricted,
+       r_TstarU_restriction = draws$r_TstarU_restriction,
+       k_restriction = draws$k_restriction,
+       p_empty = mean(draws$empty),
+       restricted = restricted)
 }
+
+summarize_posterior <- function(draws) {
+  HPDI <- with(draws$posterior, rbind(r_uz = get_HPDI(r_uz),
+                                      beta = get_HPDI(beta)))
+  list(r_TstarU_restriction = draws$r_TstarU_restriction,
+       k_restriction = draws$k_restriction,
+       p_empty = mean(draws$empty),
+       HPDI = HPDI)
+}
+
+
+
