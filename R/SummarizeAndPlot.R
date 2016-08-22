@@ -29,3 +29,12 @@ get_HPDI <- function(draws, level = 0.9) {
   upper<- interval[[2]]
   return(data.frame(lower = lower, median = median(draws), upper = upper))
 }
+
+summarize_bounds <- function(bounds_draws) {
+  # unrestricted <- bounds_draws$unrestricted
+  # restricted <- bounds_draws$restricted
+  # rbind(k_lower = get_HPDI(unrestricted$k_lower),
+  #       r_uz_lower = get_HPDI(unrestricted$r_uz_lower),
+  #       r_uz_upper = get_HPDI(unrestricted$r_uz_upper),
+
+}
