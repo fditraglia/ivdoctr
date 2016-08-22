@@ -143,4 +143,59 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
 }
 
 
+draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
+                           r_TstarU_restriction, k_restriction = NULL,
+                           n_RF_draws = 1000, n_IS_draws = 1000,
+                           Jeffreys = FALSE, resample = FALSE) {
 
+  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
+                                n_RF_draws, Jeffreys)
+
+  k_tilde_lower <- get_k_tilde_lower(obs_draws)
+  k_min <- pmax(min(k_restriction), k_tilde_lower)
+  k_max <- min(max(k_restriction), 1)
+
+  r_TstarU_min <- min(r_TstarU_restriction)
+  r_TstarU_max <- max(r_TstarU_restriction)
+
+  column_names <- c('r_TstarU', 'k', 'r_uz', 's_u', 'beta')
+  posterior_draws <- array(NA_real_, dim = c(n_IS_draws, 5, n_RF_draws),
+                           dimnames = list(NULL, column_names, NULL))
+
+  # The identified set is empty whenever (k_max < k_tilde_lower) in which case
+  # we don't make any posterior draws and leave the NAs
+  empty <- k_max < k_tilde_lower
+
+  for (i in 1:n_RF_draws) {
+
+    if (!empty[i]) {
+
+      obs <- obs_draws[i,]
+      k_tilde <- runif(n_IS_draws, k_min[i], k_max)
+      r_TstarU <- runif(n_IS_draws, r_TstarU_min, r_TstarU_max)
+
+      if (resample) {
+        M <- get_M(r_TstarU, k_tilde, obs)
+        # Note: weights for sample need *not* sum to one
+        random_indices <- sample(seq_len(n_IS_draws), size = n_IS_draws,
+                                 replace = TRUE, prob = M / max(M))
+        k_tilde <- k_tilde[random_indices]
+        r_TstarU <- r_TstarU[random_indices]
+      }
+
+      r_uz <- get_r_uz(r_TstarU, k_tilde, obs)
+      s_u <- get_s_u(r_TstarU, k_tilde, obs)
+      beta <- get_beta(r_TstarU, k_tilde, obs)
+      k <- with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
+      posterior_draws[, , i] <- cbind(r_TstarU, k, r_uz, s_u, beta)
+    }
+  }
+  posterior_draws <- toList(posterior_draws)
+  posterior_draws <- lapply(posterior_draws, function(x) as.data.frame(x))
+  posterior_draws[empty] <- NA # Only store a single NA rather than matrix
+
+  list(observables = obs_draws,
+       k_restriction = k_restriction,
+       r_TstarU_restriction = r_TstarU_restriction,
+       posterior = posterior_draws)
+}
