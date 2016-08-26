@@ -1,5 +1,21 @@
 context("Helper Functions")
 
+test_that("quadratic solvers",{
+  a <- c(1, 2, 2, 4)
+  b <- c(0, 0, 0, -16)
+  c <- c(-1, 0, 1, 16)
+  expect_equal(solve_quadratic_real(a, b, c),
+               cbind(c(-1, 0, NA, 2), c(1, 0, NA, 2)))
+  expect_equal(solve_quadratic(2, 0, 1),
+               data.frame(-i/sqrt(2), i/sqrt(2), TRUE))
+})
+
+test_that("cubic solvers", {
+  expect_equal(solve_cubic(1, 0, 0, 0),
+               data.frame(root1 = 0, root2 = 0 + 0i, root3 = 0 + 0i,
+                          three_real = TRUE))
+})
+
 test_that("vech and devech", {
   M <- matrix(c(11, 12, 13, 14,
                 12, 22, 23, 24,

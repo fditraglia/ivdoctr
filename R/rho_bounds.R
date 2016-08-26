@@ -1,70 +1,67 @@
-obs <- foo
-r_TstarU <- 0.3
+r_TstarU_upper <- 0.9
+r_TstarU_lower <- 0
+k_lower <- rep(0.7, nrow(obs))
+k_upper <- k_upper <- rep(1, nrow(obs))
 
+# Candidate Set I - Corner for both kappa and rho_TstarU
+corner1 <- get_r_uz(r_TstarU_upper, k_upper, obs)
+corner2 <- get_r_uz(r_TstarU_lower, k_lower, obs)
+corner3 <- get_r_uz(r_TstarU_upper, k_lower, obs)
+corner4 <- get_r_uz(r_TstarU_lower, k_upper, obs)
+min_corner <- pmin(corner1, corner2, corner3, corner4)
+max_corner <- pmax(corner1, corner2, corner3, corner4)
+
+# Candidate Set II - Corner for kappa, interior for rho_TstarU
+a1 <- with(obs, r_Tz * sqrt(k_lower - r_Ty^2) / (r_Ty * r_Tz - k_lower * r_zy))
+r1 <- -1 * a1 / sqrt(1 + a1^2)
+r1_ok <- (r1 > r_TstarU_lower) & (r1 < r_TstarU_upper)
+corner_k1 <- rep(NA_real_, length(r1))
+corner_k1[r1_ok] <- get_r_uz(r1[r1_ok], k_lower[r1_ok], obs[r1_ok,])
+
+a2 <- with(obs, r_Tz * sqrt(k_upper - r_Ty^2) / (r_Ty * r_Tz - k_upper * r_zy))
+r2 <- -1 * a2 / sqrt(1 + a2^2)
+r2_ok <- (r2 > r_TstarU_lower) & (r2 < r_TstarU_upper)
+corner_k2 <- rep(NA_real_, length(r2))
+corner_k2[r2_ok] <- get_r_uz(r2[r2_ok], k_lower[r2_ok], obs[r2_ok,])
+
+min_corner_k <- pmin(corner_k1, corner_k2, na.rm = TRUE)
+max_corner_k <- pmax(corner_k1, corner_k2, na.rm = TRUE)
+
+# Candidate Set III - Interior for kappa, corner for rho_TstarU
 c0 <- with(obs, -0.25 * r_Ty^6 * r_Tz^2)
-
 c1_1 <- with(obs, r_Ty^5 * r_Tz * r_zy)
 c1_2 <- with(obs, r_Ty^4 * r_Tz^2)
-c1 <- -0.5 * c1_1 + c1_2 + 0.25 * (2 * c1_1 - c1_2) * r_TstarU
-
 c2_1 <- with(obs, r_Ty^4 * r_zy^2)
 c2_2 <- with(obs, r_Ty^3 * r_Tz * r_zy)
 c2_3 <- with(obs, r_Ty^2 * r_Tz^2)
-c2 <- -0.25 * c2_1 + c2_2 - c2_3 + 0.25 * (c2_1 - 4 * c2_2 + c2_3) * r_TstarU
 
-c3 <- with(obs, 0.25 * r_TstarU^2 * r_Tz^2)
+c1_lower <- -0.5 * c1_1 + c1_2 + 0.25 * (2 * c1_1 - c1_2) * r_TstarU_lower
+c2_lower <- -0.25 * c2_1 + c2_2 - c2_3 +
+  0.25 * (c2_1 - 4 * c2_2 + c2_3) * r_TstarU_lower
+c3_lower <- with(obs, 0.25 * r_TstarU_lower^2 * r_Tz^2)
+coefs_lower <- cbind(c0, c1_lower, c2_lower, c3_lower)
+k1 <- Re(t(apply(coefs_lower, 1, polyroot)))
+k1_ok <- apply(k1, 2, function(x) (x < k_upper) & (x > k_lower))
+k1[!k1_ok] <- NA
+corner_r1 <- apply(k1, 2, function(x) get_r_uz(r_TstarU_lower, x, obs))
+min_corner_r1 <- suppressWarnings(apply(corner_r1, 1, min, na.rm = TRUE))
+max_corner_r1 <- suppressWarnings(apply(corner_r1, 1, max, na.rm = TRUE))
 
-coeffs <- c(c0, c1, c2, c3)
-roots <- polyroot(coeffs)
+c1_upper <- -0.5 * c1_1 + c1_2 + 0.25 * (2 * c1_1 - c1_2) * r_TstarU_upper
+c2_upper <- -0.25 * c2_1 + c2_2 - c2_3 +
+  0.25 * (c2_1 - 4 * c2_2 + c2_3) * r_TstarU_upper
+c3_upper <- with(obs, 0.25 * r_TstarU_upper^2 * r_Tz^2)
+coefs_upper <- cbind(c0, c1_upper, c2_upper, c3_upper)
+k2 <- Re(t(apply(coefs_upper, 1, polyroot)))
+k2_ok <- apply(k2, 2, function(x) (x < k_upper) & (x > k_lower))
+k2[!k2_ok] <- NA
+corner_r2 <- apply(k2, 2, function(x) get_r_uz(r_TstarU_upper, x, obs))
+min_corner_r2 <- suppressWarnings(apply(corner_r2, 1, min, na.rm = TRUE))
+max_corner_r2 <- suppressWarnings(apply(corner_r2, 1, max, na.rm = TRUE))
 
-solve_quadratic <- function(a, b, c) {
-  stopifnot(is.atomic(a) && is.atomic(b) && is.atomic(c))
-  stopifnot(is.numeric(a) && is.numeric(b) && is.numeric(c))
-  n <- length(a)
-  stopifnot(identical(n, length(b)))
-  stopifnot(identical(n, length(c)))
-  d <- b^2 - 4 * a * c
-  q <- rep(NA_real_, length(a))
-  real <- d >= 0
-  q[real] <- -0.5 * (b[real] + sign(b[real]) * sqrt(d[real]))
-  q[!real] <- -0.5 * (b[!real] + sign(b[!real]) * 1i * sqrt(abs(d[!real])))
-  x1 <- q / a
-  x2 <- c / q
-  list(root1 = x1, root2 = x2)
-}
+min_corner_r <- pmin(min_corner_r1, min_corner_r2)
+max_corner_r <- pmax(max_corner_r1, max_corner_r2)
 
-solve_cubic_1 <- function(a, b, c){
-  stopifnot(is.atomic(a) && is.atomic(b) && is.atomic(c))
-  stopifnot(is.numeric(a) && is.numeric(b) && is.numeric(c))
-  n <- length(a)
-  stopifnot(identical(n, length(b)))
-  stopifnot(identical(n, length(c)))
-  n <- length(a)
-  stopifnot(identical(n, length(b)))
-  stopifnot(identical(n, length(c)))
-  Q <- (a^2 - 3 * b) / 9
-  R <- (2 * a^3 - 9 * a * b + 27 * c) / 54
-  r3 <- R^2 < Q^3
-  theta <- acos(R[all_real] / sqrt(Q[all_real]^3))
-  x1[r3] <- -2 * sqrt(Q[r3]) * cos(theta / 3) - a[all_real] / 3
-  x2[r3] <- -2 * sqrt(Q[r3]) * cos((theta + 2 * pi) / 3) - a[r3] / 3
-  x3[r3] <- -2 * sqrt(Q[r3]) * cos((theta - 2 * pi) / 3) - a[r3] / 3
-  A <- -1 * sign(R[!r3]) * (abs(R[!r3]) + sqrt(R[!r3]^2 - Q[!r3]^3))^(1 / 3)
-  # B <-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Finally: overall max and min
+r_uz_max <- pmax(max_corner, max_corner_r, max_corner_k)
+r_uz_min <- pmin(min_corner, min_corner_r, min_corner_k)
