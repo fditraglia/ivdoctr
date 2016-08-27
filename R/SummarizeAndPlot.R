@@ -121,7 +121,7 @@ plot_3d_beta <- function(obs, r_TstarU_range, k_range = NULL, n_grid = 30,
   }
   VT <- persp(r_TstarU, k, r_uz, ticktype = 'detailed', nticks = 4, phi = 30,
               theta = 225, xlab = '$\\rho_{T^*u}$', ylab = '$\\kappa$',
-              zlab = '$\\rho_{zu}', col = facet_colors, cex.axis = 0.75)
+              zlab = '$\\rho_{zu}$', col = facet_colors, cex.axis = 0.75)
 
   if(!is.null(fence)){
 
