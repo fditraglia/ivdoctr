@@ -1,3 +1,26 @@
+#' Construct vectors of points that outline a rectangle.
+#'
+#' @param xlower
+#' @param xupper
+#' @param ylower
+#' @param yupper
+#' @param step_x
+#' @param step_y
+#'
+#' @return
+#' @export
+#'
+#' @examples
+rect_points <- function(xleft, ybottom, xright, ytop, step_x, step_y){
+  x_seq <- seq(xleft, xright, step_x)
+  y_seq <- seq(ybottom, ytop, step_y)
+  n_x <- length(x_seq)
+  n_y <- length(y_seq)
+  x <- c(x_seq, rep(x_seq[n_x], n_y - 2), rev(x_seq), rep(x_seq[1], n_y - 1))
+  y <- c(rep(y_seq[1], n_x - 1), y_seq, rep(y_seq[n_y], n_x - 2), rev(y_seq))
+  list(x = x, y = y)
+}
+
 #' Collapse 3-d array to matrix
 #'
 #' @param myarray A three-dimensional array.
