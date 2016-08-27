@@ -76,10 +76,12 @@ plot_3d_beta <- function(obs, r_TstarU_range, k_range = NULL, n_grid = 30,
     k_upper <- min(k_upper, max(k_range))
   }
 
-  k <- seq(k_lower, k_upper, length.out = n_grid)
   r_TstarU <- seq(r_TstarU_lower, r_TstarU_upper, length.out = n_grid)
-  r_uz <- outer(r_TstarU, k, function(x, y) get_r_uz(x, y, obs))
-  beta <- outer(r_TstarU, k, function(x, y) get_beta(x, y, obs))
+  # We will plot k, but get_r_uz and get_beta both take k_tilde as inputs
+  k <- seq(k_lower, k_upper, length.out = n_grid)
+  k_tilde <- (k - obs$T_Rsq) / (1 - obs$T_Rsq)
+  r_uz <- outer(r_TstarU, k_tilde, function(x, y) get_r_uz(x, y, obs))
+  beta <- outer(r_TstarU, k_tilde, function(x, y) get_beta(x, y, obs))
 
   is_gray <- outer(r_TstarU, k, make_gray)
   is_gray_facet <- 1 < (is_gray[-1, -1] + is_gray[-1, -n_grid] +
