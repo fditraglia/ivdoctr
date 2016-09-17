@@ -4,17 +4,15 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
   if (!is.null(controls)) {
     y <- resid(lm(reformulate(controls, response = y_name), data))
     T_reg <- lm(reformulate(controls, response = T_name), data)
-    z_reg <- lm(reformulate(controls, response = z_name), data)
+    z <- resid(lm(reformulate(controls, response = z_name), data))
     Tobs <- resid(T_reg)
     T_Rsq <- summary(T_reg)$r.squared
-    z <- resid(z_reg)
-    z_Rsq <- summary(z_reg)$r.squared
+    rm(T_reg, z_reg)
   } else {
     y <- get(y_name, data)
     Tobs <- get(T_name, data)
     z <- get(z_name, data)
-    T_Rsq <- z_Rsq <- 0 # No controls is the same as controls that are
-                        # uncorrelated with both Tobs and z
+    T_Rsq <- 0 # No controls is the same as controls that are uncorrelated with Tobs
   }
 
   Sigma <- cov(cbind(Tobs, y, z))
@@ -23,35 +21,36 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
   s2_z <- Sigma['z', 'z']
   s_Ty <- Sigma['Tobs', 'y']
   s_Tz <- Sigma['Tobs', 'z']
-  s_zy <- Sigma["z", "y"]
+  s_zy <- Sigma['z', 'y']
 
   Rho <- cov2cor(Sigma)
   r_Ty <- Rho['Tobs', 'y']
   r_Tz <- Rho['Tobs', 'z']
   r_zy <- Rho['z', 'y']
 
-
-  list(n = nrow(data),
-       T_Rsq = T_Rsq,
-       z_Rsq = z_Rsq,
-       s2_T = s2_T,
-       s2_y = s2_y,
-       s2_z = s2_z,
-       s_Ty = s_Ty,
-       s_Tz = s_Tz,
-       s_zy = s_zy,
-       r_Ty = r_Ty,
-       r_Tz = r_Tz,
-       r_zy = r_zy)
+  ans <- list(n = nrow(data),
+              T_Rsq = T_Rsq,
+              s2_T = s2_T,
+              s2_y = s2_y,
+              s2_z = s2_z,
+              s_Ty = s_Ty,
+              s_Tz = s_Tz,
+              s_zy = s_zy,
+              r_Ty = r_Ty,
+              r_Tz = r_Tz,
+              r_zy = r_zy)
+  return(ans)
 }
 
 get_k_tilde_lower <- function(obs) {
-  with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
+  ans <- with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
+  return(ans)
 }
 
 get_k_lower <- function(obs) {
   k_tilde_lower <- get_k_tilde_lower(obs)
-  with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
+  ans <- with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
+  return(ans)
 }
 
 get_r_uz_lower <- function(obs) {
