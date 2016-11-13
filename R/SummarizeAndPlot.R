@@ -66,7 +66,7 @@ plot_3d_beta <- function(obs, r_TstarU_range, k_range = NULL, n_grid = 30,
   r_TstarU_lower <- max(-0.99, min(r_TstarU_range))
   r_TstarU_upper <- min(0.99, max(r_TstarU_range))
 
-  k_lower <- get_k_lower(obs)
+  k_lower <- get_bounds_unrest(obs)$k$Lower
   k_upper <- 1
 
   if(!is.null(k_range)) {
