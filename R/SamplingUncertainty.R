@@ -1,8 +1,8 @@
 draw_sigma_CLT <- function(y, Tobs, z, n_draws) {
   n <- length(y)
-  e_x <- resid(lm(y ~ Tobs))
+  e_T <- resid(lm(y ~ Tobs))
   e_z <- resid(lm(y ~ z))
-  V <- cov(cbind(Tobs * e_x, z * e_z))
+  V <- cov(cbind(Tobs * e_T, z * e_z))
   Sigma <- cov(cbind(Tobs, y, z))
   sims <- MASS::mvrnorm(n_draws, c(Sigma['Tobs', 'y'], Sigma['z', 'y']), V / n)
   g <- function(sim_row){
@@ -88,7 +88,7 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
                                 n_draws, Jeffreys)
 
-  k_tilde_lower <- get_k_tilde_lower(obs_draws)
+  k_tilde_lower <- get_bounds_unrest(obs_draws, tilde = TRUE)$k_tilde$Lower
 
   if (!is.null(r_TstarU_restriction)) {
     r_TstarU_min <- min(r_TstarU_restriction)
@@ -126,9 +126,9 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
     restricted <- NULL
   }
   unrestricted = data.frame(k_tilde_lower = k_tilde_lower,
-                            k_lower = get_k_lower(obs_draws),
-                            r_uz_lower = get_r_uz_lower(obs_draws),
-                            r_uz_upper = get_r_uz_upper(obs_draws))
+                            k_lower = get_bounds_unrest(obs_draws)$k$Lower,
+                            r_uz_lower = get_bounds_unrest(obs_draws)$r_uz$Lower,
+                            r_uz_upper = get_bounds_unrest(obs_draws)$r_uz$Upper)
   list(observables = obs_draws,
        empty = empty,
        unrestricted = unrestricted,
@@ -146,7 +146,7 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
                                 n_RF_draws, Jeffreys)
 
-  k_tilde_lower <- get_k_tilde_lower(obs_draws)
+  k_tilde_lower <- get_bounds_unrest(obs_draws)$k_tilde$Lower
   k_min <- pmax(min(k_restriction), k_tilde_lower)
   k_max <- min(max(k_restriction), 1)
 

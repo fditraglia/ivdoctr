@@ -1,3 +1,6 @@
+# This function takes the data and function specification and returns the relevant
+# correlations and covariances. If there are exogenous controls, those are 
+# projected out.
 get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
 
   # Project out control regressors if present
@@ -23,13 +26,12 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
   s2_z <- Sigma['z', 'z']
   s_Ty <- Sigma['Tobs', 'y']
   s_Tz <- Sigma['Tobs', 'z']
-  s_zy <- Sigma["z", "y"]
+  s_zy <- Sigma['z', 'y']
 
   Rho <- cov2cor(Sigma)
   r_Ty <- Rho['Tobs', 'y']
   r_Tz <- Rho['Tobs', 'z']
   r_zy <- Rho['z', 'y']
-
 
   list(n = nrow(data),
        T_Rsq = T_Rsq,
@@ -45,33 +47,52 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
        r_zy = r_zy)
 }
 
-get_k_tilde_lower <- function(obs) {
-  with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
+# Once we have the relevant correlations and covariances (from get_observables), 
+# we can get our unrestricted bounds for kappa. Depending on whether there are
+# exogenous covariantes, toggle "tilde" to be TRUE or FALSE.
+get_k_bounds_unrest <- function(obs, tilde) {
+  k_tilde <- with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
+  lower_bound <- ifelse(tilde, k_tilde, (1 - obs$T_Rsq) * k_tilde + obs$T_Rsq)
+  ans <- list(Lower = lower_bound, Upper = 1)
+  return(ans)
 }
 
-get_k_lower <- function(obs) {
-  k_tilde_lower <- get_k_tilde_lower(obs)
-  with(obs, (1 - T_Rsq) * k_tilde_lower + T_Rsq)
-}
-
-get_r_uz_lower <- function(obs) {
-  k_tilde_lower <- get_k_tilde_lower(obs)
+# We can get the bounds for rho_uz as well.
+get_r_uz_bounds_unrest <- function(obs) {
+  k_tilde_lower <- get_k_bounds_unrest(obs, tilde = TRUE)$Lower
+  bound <- abs(obs$r_Tz) / sqrt(k_tilde_lower)
   nontrivial_lower_bound <- with(obs, r_Ty * r_Tz < k_tilde_lower * r_zy)
-  ifelse(nontrivial_lower_bound, -1 * abs(obs$r_Tz) / sqrt(k_tilde_lower), -1)
+  upper_bound <- ifelse(nontrivial_lower_bound, 1, bound)
+  lower_bound <- ifelse(nontrivial_lower_bound, -1 * bound, -1)
+  ans <- list(Lower = lower_bound, Upper = upper_bound)
+  return(ans)
 }
 
-get_r_uz_upper <- function(obs) {
-  k_tilde_lower <- get_k_tilde_lower(obs)
-  nontrivial_upper_bound <- with(obs, r_Ty * r_Tz >= k_tilde_lower * r_zy)
-  ifelse(nontrivial_upper_bound, abs(obs$r_Tz) / sqrt(k_tilde_lower), 1)
+# We can get rho_TstarU bounds as well (they don't really change)
+get_r_TstarU_bounds_unrest <- function(obs) {
+  return(list(Lower = -1, Upper = 1))
 }
 
+# Wrapper function puts all the bounds together.
+get_bounds_unrest <- function(obs) {
+  ans <- list(r_TstarU = get_r_TstarU_bounds_unrest(obs),
+              r_uz = get_r_uz_bounds_unrest(obs),
+              k = get_k_bounds_unrest(obs, tilde = FALSE),
+              k_tilde = get_k_bounds_unrest(obs, tilde = TRUE))
+  return(ans)
+}
+
+# Solves for r_uz
 get_r_uz <- function(r_TstarU, k, obs) {
   A <- with(obs, r_TstarU * r_Tz / sqrt(k))
   B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
   B2 <- with(obs, sqrt((1 - r_TstarU^2) / (k * (k - r_Ty^2))))
   A - B1 * B2
 }
+
+
+
+
 
 get_M <- function(r_TstarU, k, obs) {
   A <- with(obs, r_TstarU * r_Tz / sqrt(k))

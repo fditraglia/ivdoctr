@@ -1,0 +1,112 @@
+test_that("Projecting out without controls returns same data", {
+  y <- c(2, 4, 6, 8)
+  x <- 2 * y
+  z <- seq.int(1:4)
+  Tobs <- c(3, 7, 5, 2)
+  Data <- data.frame(y, x, z, Tobs)
+  Sigma <- cov(Data)
+  Rho <- cov2cor(Sigma)
+  expected_answer <- list(n = 4, 
+                          T_Rsq = 0,
+                          z_Rsq = 0,
+                          s2_T = Sigma["Tobs", "Tobs"],
+                          s2_y = Sigma["y", "y"],
+                          s2_z = Sigma["z", "z"],
+                          s_Ty = Sigma["Tobs", "y"],
+                          s_Tz = Sigma["Tobs", "z"],
+                          s_zy = Sigma["z", "y"],
+                          r_Ty = Rho["Tobs", "y"],
+                          r_Tz = Rho["Tobs", "z"],
+                          r_zy = Rho["z", "y"])
+  ans <- get_observables(y_name = "y", T_name = "Tobs", z_name = "z", data = Data, controls = NULL)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("Projecting out with controls returns projected out data", {
+  y <- c(2, 4, 6, 8)
+  x <- 2 * y
+  z <- seq.int(1:4)
+  Tobs <- c(3, 7, 5, 2)
+  data <- data.frame(y, x, z, Tobs)
+  newY <- resid(lm(data = data, y ~ x))
+  newZ <- resid(lm(data = data, z ~ x))
+  newT <- resid(lm(data = data, Tobs ~ x))
+  newData <- data.frame(newY, newZ, newT)
+  sigma <- cov(newData)
+  rho <- suppressWarnings(cov2cor(sigma)) # Data is constructed to be a perfect fit.
+  reg <- lm(data = data, Tobs ~ x)
+  expected_answer <- list(n = 4, 
+                          T_Rsq = summary(reg)$r.squared,
+                          z_Rsq = 1,
+                          s2_T = sigma["newT", "newT"],
+                          s2_y = sigma["newY", "newY"],
+                          s2_z = sigma["newZ", "newZ"],
+                          s_Ty = sigma["newT", "newY"],
+                          s_Tz = sigma["newT", "newZ"],
+                          s_zy = sigma["newZ", "newY"],
+                          r_Ty = rho["newT", "newY"],
+                          r_Tz = rho["newT", "newZ"],
+                          r_zy = rho["newZ", "newY"])
+  ans <- suppressWarnings(get_observables(y_name = "y", T_name = "Tobs", z_name = "z", data = data, controls = "x"))
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_k_bounds_unrest properly computes bounds 1", {
+  obs <- list(r_Ty = 0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5,
+              T_Rsq = 0)
+  ans <- get_k_bounds_unrest(obs, tilde = TRUE)
+  expected_answer <- list(Lower = 1 / 3, Upper = 1)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_k_bounds_unrest properly computes bounds 2", {
+  obs <- list(r_Ty = 0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5,
+              T_Rsq = 0)
+  ans <- get_k_bounds_unrest(obs, tilde = FALSE)
+  expected_answer <- list(Lower = 1 / 3, Upper = 1)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_k_bounds_unrest properly computes bounds 3", {
+  obs <- list(r_Ty = 0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5,
+              T_Rsq = 0.5)
+  ans <- get_k_bounds_unrest(obs, tilde = TRUE)
+  expected_answer <- list(Lower = 1 / 3, Upper = 1)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_k_bounds_unrest properly computes bounds 4", {
+  obs <- list(r_Ty = 0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5,
+              T_Rsq = 0.5)
+  ans <- get_k_bounds_unrest(obs, tilde = FALSE)
+  expected_answer <- list(Lower = 2 / 3, Upper = 1)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz_bounds_unrest properly computes bounds 1", {
+  obs <- list(r_Ty = 0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5,
+              T_Rsq = 0.5)
+  ans <- get_r_uz_bounds_unrest(obs)
+  expected_answer <- list(Lower = -1, Upper = 0.5 / sqrt(1 / 3))
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz_bounds_unrest properly computes bounds 2", {
+  obs <- list(r_Ty = -0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5,
+              T_Rsq = 0.5)
+  ans <- get_r_uz_bounds_unrest(obs)
+  expected_answer <- list(Lower = -0.5, Upper = 1)
+  expect_equal(expected_answer, ans)
+})

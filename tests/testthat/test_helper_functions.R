@@ -62,3 +62,29 @@ test_that("error on non-pd cov matrix draw from covCLT", {
   foo <- data.frame(x, y, z)
   expect_that(covCLT(foo, 100), throws_error())
 })
+
+test_that("rectangle points are generated properly", {
+  xleft <- 0
+  ybottom <- 0
+  xright <- 1
+  ytop <- 1
+  step_x <- 1
+  step_y <- 1
+  expected <- list(x = c(0, 1, 0, 1, 0),
+                   y = c(0, 0, 1, 1, 0))
+  ans <- rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
+  expect_equal(expected, ans)
+})
+
+test_that("rectangle points are generated properly", {
+  xleft <- 0
+  ybottom <- 0
+  xright <- 1
+  ytop <- 1
+  step_x <- 0.5
+  step_y <- 0.5
+  expected <- list(x = c(0, 0.5, 1, 0, 0.5, 1, 0, 0.5, 1, 0),
+                   y = c(0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1, 0))
+  ans <- rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
+  expect_equal(expected, ans)
+})
