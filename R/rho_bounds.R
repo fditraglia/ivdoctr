@@ -11,7 +11,7 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
     return(unrestricted)
   } else {
     
-    # Storing restricted bounds for later
+    # Storing the more restrictive bounds for each parameter (either user or unrestricted)
     r_TstarU_lower_bound <- ifelse(r_TstarU_lower <= unrestricted$r_TstarU$Lower,
                                    unrestricted$r_TstarU$Lower,
                                    r_TstarU_lower)
@@ -25,26 +25,15 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
                             unrestricted$k$Upper, 
                             k_upper)
     
-    # Finding r_uz bounds
+    # Finding r_uz bounds based on restricted bounds above
     # Candidate Set I - Corner for both kappa and rho_TstarU
-    set1 <- candidate1(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs)
+    set1 <- candidate1(r_TstarU_upper_bound, r_TstarU_lower_bound, 
+                       k_upper_bound, k_lower_bound, obs)
   
     # Candidate Set II - Corner for kappa, interior for rho_TstarU
-    a1 <- with(obs, r_Tz * sqrt(k_lower - r_Ty^2) / (r_Ty * r_Tz - k_lower * r_zy))
-    r1 <- -1 * a1 / sqrt(1 + a1^2)
-    r1_ok <- (r1 > r_TstarU_lower) & (r1 < r_TstarU_upper)
-    corner_k1 <- rep(NA_real_, length(r1))
-    corner_k1[r1_ok] <- get_r_uz(r1[r1_ok], k_lower[r1_ok], obs[r1_ok,])
-  
-    a2 <- with(obs, r_Tz * sqrt(k_upper - r_Ty^2) / (r_Ty * r_Tz - k_upper * r_zy))
-    r2 <- -1 * a2 / sqrt(1 + a2^2)
-    r2_ok <- (r2 > r_TstarU_lower) & (r2 < r_TstarU_upper)
-    corner_k2 <- rep(NA_real_, length(r2))
-    corner_k2[r2_ok] <- get_r_uz(r2[r2_ok], k_lower[r2_ok], obs[r2_ok,])
-  
-    min_corner_k <- pmin(corner_k1, corner_k2, na.rm = TRUE)
-    max_corner_k <- pmax(corner_k1, corner_k2, na.rm = TRUE)
-  
+    set2 <- candidate2(r_TstarU_upper_bound, r_TstarU_lower_bound, 
+                       k_upper_bound, k_lower_bound, obs)
+
     # Candidate Set III - Interior for kappa, corner for rho_TstarU
     c0 <- with(obs, -0.25 * r_Ty^6 * r_Tz^2)
     c1_1 <- with(obs, r_Ty^5 * r_Tz * r_zy)
@@ -99,7 +88,7 @@ candidate1 <- function(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs) {
     return(ans)
 }
 
-# Evaluates the edge where k is on the boundary. Vectorized wrt k bounds.
+# Evaluates the edge where k is on the boundary. Vectorized wrt r_TstarU and k bounds.
 candidate2 <- function(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs) {
     k_bounds <- cbind(k_lower, k_upper)
     a <- with(obs, r_Tz * sqrt(k_bounds - r_Ty^2) / (r_Ty * r_Tz - k_bounds * r_zy))
