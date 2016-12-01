@@ -18,7 +18,8 @@ test_that("Projecting out without controls returns same data", {
                           r_Ty = Rho["Tobs", "y"],
                           r_Tz = Rho["Tobs", "z"],
                           r_zy = Rho["z", "y"])
-  ans <- get_observables(y_name = "y", T_name = "Tobs", z_name = "z", data = Data, controls = NULL)
+  ans <- get_observables(y_name = "y", T_name = "Tobs", z_name = "z", 
+                         data = Data, controls = NULL)
   expect_equal(expected_answer, ans)
 })
 
@@ -47,7 +48,8 @@ test_that("Projecting out with controls returns projected out data", {
                           r_Ty = rho["newT", "newY"],
                           r_Tz = rho["newT", "newZ"],
                           r_zy = rho["newZ", "newY"])
-  ans <- suppressWarnings(get_observables(y_name = "y", T_name = "Tobs", z_name = "z", data = data, controls = "x"))
+  ans <- suppressWarnings(get_observables(y_name = "y", T_name = "Tobs", 
+                                          z_name = "z", data = data, controls = "x"))
   expect_equal(expected_answer, ans)
 })
 
@@ -109,4 +111,87 @@ test_that("get_r_uz_bounds_unrest properly computes bounds 2", {
   ans <- get_r_uz_bounds_unrest(obs)
   expected_answer <- list(Lower = -0.5, Upper = 1)
   expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz computes properly 1", {
+  obs <- list(r_Ty = -0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5)
+  r_TstarU <- 1
+  k <- 1
+  expected_answer <- 0.5
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz computes properly 2", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 0)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- 0 
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz computes properly 3", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 1)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- 2
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz is vectorized wrt r_TstarU and k", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 1)
+  r_TstarU <- c(0, 0)
+  k <- c(1, 1)
+  expected_answer <- c(2, 2)
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("candidate1 computes properly 1", {
+  obs <- list(r_Ty = 0,
+              r_Tz = 0,
+              r_zy = 0)
+  r_TstarU_upper <- 1
+  r_TstarU_lower <- 0
+  k_upper <- 1
+  k_lower <- 0.1
+  expected_answer <- c(0, 0)
+  ans <- candidate1(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("candidate1 is appropriately vectorized wrt r_TstarU and k", {
+  obs <- list(r_Ty = 0,
+              r_Tz = 0,
+              r_zy = 0)
+  r_TstarU_upper <- c(1, 1)
+  r_TstarU_lower <- c(0, 0)
+  k_upper <- c(1, 1)
+  k_lower <- c(0.1, 0.1)
+  expected_answer <- cbind(min_corner = c(0, 0), max_corner = c(0, 0))
+  ans <- candidate1(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("candidate2 properly computes solutions", {
+  obs <- list(r_Ty = 0,
+              r_Tz = 0,
+              r_zy = 1)
+  r_TstarU_upper <- 1
+  r_TstarU_lower <- 0
+  k_upper <- 1
+  k_lower <- 0.1
+  expected_answer <- cbind(1, 1)
+  ans <- candidate2(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs)
+  expect_equivalent(expected_answer, ans)
 })

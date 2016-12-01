@@ -27,12 +27,7 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
     
     # Finding r_uz bounds
     # Candidate Set I - Corner for both kappa and rho_TstarU
-    corner1 <- get_r_uz(r_TstarU_upper, k_upper, obs)
-    corner2 <- get_r_uz(r_TstarU_lower, k_lower, obs)
-    corner3 <- get_r_uz(r_TstarU_upper, k_lower, obs)
-    corner4 <- get_r_uz(r_TstarU_lower, k_upper, obs)
-    min_corner <- pmin(corner1, corner2, corner3, corner4)
-    max_corner <- pmax(corner1, corner2, corner3, corner4)
+    set1 <- candidate1(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs)
   
     # Candidate Set II - Corner for kappa, interior for rho_TstarU
     a1 <- with(obs, r_Tz * sqrt(k_lower - r_Ty^2) / (r_Ty * r_Tz - k_lower * r_zy))
@@ -92,3 +87,27 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
   }
 }
 
+# Evaluates the corners given user bounds. Vectorized wrt r_TstarU and k bounds.
+candidate1 <- function(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs) {
+    corner1 <- get_r_uz(r_TstarU_upper, k_upper, obs)
+    corner2 <- get_r_uz(r_TstarU_lower, k_lower, obs)
+    corner3 <- get_r_uz(r_TstarU_upper, k_lower, obs)
+    corner4 <- get_r_uz(r_TstarU_lower, k_upper, obs)
+    min_corner <- pmin(corner1, corner2, corner3, corner4, na.rm = TRUE)
+    max_corner <- pmax(corner1, corner2, corner3, corner4, na.rm = TRUE)
+    ans <- cbind(min_corner, max_corner)
+    return(ans)
+}
+
+# Evaluates the edge where k is on the boundary. Vectorized wrt k bounds.
+candidate2 <- function(r_TstarU_upper, r_TstarU_lower, k_upper, k_lower, obs) {
+    k_bounds <- cbind(k_lower, k_upper)
+    a <- with(obs, r_Tz * sqrt(k_bounds - r_Ty^2) / (r_Ty * r_Tz - k_bounds * r_zy))
+    r <- -1 * a / sqrt(1 + a^2)
+    r <- ifelse(r <= r_TstarU_upper & r >= r_TstarU_lower, r, NA)
+    edges <- get_r_uz(r, k_bounds, obs)
+    min_edge <- pmin(edges[, 1], edges[, 2], na.rm = TRUE)
+    max_edge <- pmax(edges[, 1], edges[, 2], na.rm = TRUE)
+    ans <- cbind(min_edge, max_edge)
+    return(ans)
+}
