@@ -18,7 +18,8 @@ test_that("Projecting out without controls returns same data", {
                           r_Ty = Rho["Tobs", "y"],
                           r_Tz = Rho["Tobs", "z"],
                           r_zy = Rho["z", "y"])
-  ans <- get_observables(y_name = "y", T_name = "Tobs", z_name = "z", data = Data, controls = NULL)
+  ans <- get_observables(y_name = "y", T_name = "Tobs", z_name = "z", 
+                         data = Data, controls = NULL)
   expect_equal(expected_answer, ans)
 })
 
@@ -47,7 +48,8 @@ test_that("Projecting out with controls returns projected out data", {
                           r_Ty = rho["newT", "newY"],
                           r_Tz = rho["newT", "newZ"],
                           r_zy = rho["newZ", "newY"])
-  ans <- suppressWarnings(get_observables(y_name = "y", T_name = "Tobs", z_name = "z", data = data, controls = "x"))
+  ans <- suppressWarnings(get_observables(y_name = "y", T_name = "Tobs", 
+                                          z_name = "z", data = data, controls = "x"))
   expect_equal(expected_answer, ans)
 })
 
@@ -91,6 +93,30 @@ test_that("get_k_bounds_unrest properly computes bounds 4", {
   expect_equal(expected_answer, ans)
 })
 
+test_that("get_k_bounds_unrest properly computes bounds 5", {
+    set.seed(1234)
+    nsim <- 500
+    lengthGrid <- 500
+    
+    # Generating a bunch of correlation draws
+    sims_rho_Tz <- 2 * runif(nsim) - 1
+    sims_rho_Ty <- 2 * runif(nsim) - 1
+    sims_rho_zy <- 2 * runif(nsim) - 1
+    obs <- list(r_Ty = sims_rho_Ty,
+                r_zy = sims_rho_zy,
+                r_Tz = sims_rho_Tz,
+                T_Rsq = rep(0, nsim))
+    
+    # Getting unrestricted bounds for kappa
+    k_bounds <- get_k_bounds_unrest(obs, tilde = FALSE)
+    k_lower <- ((sims_rho_Ty^2) + (sims_rho_Tz^2) - 2 * sims_rho_Ty * sims_rho_Tz * 
+                  sims_rho_zy) / (1 - (sims_rho_zy^2))
+    k_upper <- rep(1, nsim)
+    
+    expect_equal(k_bounds$Lower, k_lower)
+    expect_equal(k_bounds$Upper, k_upper)
+})
+
 test_that("get_r_uz_bounds_unrest properly computes bounds 1", {
   obs <- list(r_Ty = 0.5,
               r_Tz = 0.5,
@@ -108,5 +134,49 @@ test_that("get_r_uz_bounds_unrest properly computes bounds 2", {
               T_Rsq = 0.5)
   ans <- get_r_uz_bounds_unrest(obs)
   expected_answer <- list(Lower = -0.5, Upper = 1)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz computes properly 1", {
+  obs <- list(r_Ty = -0.5,
+              r_Tz = 0.5,
+              r_zy = 0.5)
+  r_TstarU <- 1
+  k <- 1
+  expected_answer <- 0.5
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz computes properly 2", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 0)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- 0 
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz computes properly 3", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 1)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- 2
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz is vectorized wrt r_TstarU and k", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 1)
+  r_TstarU <- c(0, 0)
+  k <- c(1, 1)
+  expected_answer <- c(2, 2)
+  ans <- get_r_uz(r_TstarU, k, obs)
   expect_equal(expected_answer, ans)
 })

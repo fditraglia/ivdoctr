@@ -43,7 +43,7 @@ collapse_3d_array <- function(myarray){
 #' M <- array(c(1, 1, 1, 1, 2, 2, 2, 2), c(2, 2, 2))
 #' toList(M)
 toList <- function(myArray){
-  lapply(seq_len(dim(myArray)[3]), function(i) myArray[,,i,drop = TRUE])
+  lapply(seq_len(dim(myArray)[3]), function(i) myArray[, , i, drop = TRUE])
 }
 
 
@@ -70,7 +70,7 @@ solve_quadratic <- function(a, b, c) {
   n <- length(a)
   stopifnot(identical(n, length(b)))
   stopifnot(identical(n, length(c)))
-  d <- b^2 - 4 * a * c
+  d <- b ^ 2 - 4 * a * c
   q <- rep(NA_complex_, n)
   real <- d >= 0
   # sign(0) = 0, but here we want it to be 1
@@ -136,16 +136,16 @@ solve_cubic_1 <- function(a, b, c){
   n <- length(a)
   stopifnot(identical(n, length(b)))
   stopifnot(identical(n, length(c)))
-  Q <- (a^2 - 3 * b) / 9
-  R <- (2 * a^3 - 9 * a * b + 27 * c) / 54
-  r3 <- R^2 < Q^3
-  theta <- acos(R[r3] / sqrt(Q[r3]^3))
+  Q <- (a ^ 2 - 3 * b) / 9
+  R <- (2 * a ^ 3 - 9 * a * b + 27 * c) / 54
+  r3 <- R ^ 2 < Q ^ 3
+  theta <- acos(R[r3] / sqrt(Q[r3] ^ 3))
   x1 <- rep(NA_real_, n)
   x2 <- x3 <- rep(NA_complex_, n)
   x1[r3] <- -2 * sqrt(Q[r3]) * cos(theta / 3) - a[r3] / 3
   x2[r3] <- -2 * sqrt(Q[r3]) * cos((theta + 2 * pi) / 3) - a[r3] / 3
   x3[r3] <- -2 * sqrt(Q[r3]) * cos((theta - 2 * pi) / 3) - a[r3] / 3
-  A <- -1 * sign(R[!r3]) * (abs(R[!r3]) + sqrt(R[!r3]^2 - Q[!r3]^3))^(1 / 3)
+  A <- -1 * sign(R[!r3]) * (abs(R[!r3]) + sqrt(R[!r3] ^ 2 - Q[!r3] ^ 3)) ^ (1 / 3)
   ok <- A != 0
   B <- rep(NA_real_, length(A))
   B[ok] <- Q[!r3][ok] / A[ok]

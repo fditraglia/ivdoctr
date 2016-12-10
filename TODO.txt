@@ -1,0 +1,7 @@
+# TODO File
+1. Double check and write tests for IdentifiedSet lines 97-end
+2. Do we still need the quadratic and cubic solvers from helper_functions? 
+Requires a double check that as implemented, bounds are not too sensitive. We'll see
+3. Simplify SamplingUncertainty
+4. Simplify SummarizeAndPlot
+5. Regenerate continuous tables from paper

@@ -14,6 +14,5 @@
 #' M <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
 #' rinvwish(5, 10, M)
 rinvwish <- function(n, v, S) {
-    .Call('ivdoctr_rinvwish', PACKAGE = 'ivdoctr', n, v, S)
+    .Call("ivdoctr_rinvwish", PACKAGE = "ivdoctr", n, v, S)
 }
-

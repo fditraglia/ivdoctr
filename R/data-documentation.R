@@ -108,4 +108,3 @@
 #' @source \url{http://www.cengage.com/aise/economics/wooldridge_3e_datasets/}
 #' @references \url{http://qje.oxfordjournals.org/content/107/4/1421.full.pdf+html}
 "wage2"
-
