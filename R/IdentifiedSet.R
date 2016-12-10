@@ -21,17 +21,17 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
   }
 
   Sigma <- cov(cbind(Tobs, y, z))
-  s2_T <- Sigma['Tobs', 'Tobs']
-  s2_y <- Sigma['y', 'y']
-  s2_z <- Sigma['z', 'z']
-  s_Ty <- Sigma['Tobs', 'y']
-  s_Tz <- Sigma['Tobs', 'z']
-  s_zy <- Sigma['z', 'y']
+  s2_T <- Sigma["Tobs", "Tobs"]
+  s2_y <- Sigma["y", "y"]
+  s2_z <- Sigma["z", "z"]
+  s_Ty <- Sigma["Tobs", "y"]
+  s_Tz <- Sigma["Tobs", "z"]
+  s_zy <- Sigma["z", "y"]
 
   Rho <- cov2cor(Sigma)
-  r_Ty <- Rho['Tobs', 'y']
-  r_Tz <- Rho['Tobs', 'z']
-  r_zy <- Rho['z', 'y']
+  r_Ty <- Rho["Tobs", "y"]
+  r_Tz <- Rho["Tobs", "z"]
+  r_zy <- Rho["z", "y"]
 
   list(n = nrow(data),
        T_Rsq = T_Rsq,
@@ -51,9 +51,9 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
 # we can get our unrestricted bounds for kappa. Depending on whether there are
 # exogenous covariantes, toggle "tilde" to be TRUE or FALSE.
 get_k_bounds_unrest <- function(obs, tilde) {
-  k_tilde <- with(obs, (r_Ty^2 + r_Tz^2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy^2))
-  lower_bound <- ifelse(tilde, k_tilde, (1 - obs$T_Rsq) * k_tilde + obs$T_Rsq)
-  ans <- list(Lower = lower_bound, Upper = 1)
+  k_tilde <- with(obs, (r_Ty ^ 2 + r_Tz ^ 2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy ^ 2))
+  lower_bound <- k_tilde * tilde + ((1 - obs$T_Rsq) * k_tilde + obs$T_Rsq) * (1 - tilde)
+  ans <- list(Lower = lower_bound, Upper = rep(1, length(k_tilde)))
   return(ans)
 }
 
@@ -86,7 +86,7 @@ get_bounds_unrest <- function(obs) {
 get_r_uz <- function(r_TstarU, k, obs) {
   A <- with(obs, r_TstarU * r_Tz / sqrt(k))
   B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
-  B2 <- with(obs, sqrt((1 - r_TstarU^2) / (k * (k - r_Ty^2))))
+  B2 <- with(obs, sqrt((1 - r_TstarU ^ 2) / (k * (k - r_Ty ^ 2))))
   A - B1 * B2
 }
 

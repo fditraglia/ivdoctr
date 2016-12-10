@@ -93,6 +93,30 @@ test_that("get_k_bounds_unrest properly computes bounds 4", {
   expect_equal(expected_answer, ans)
 })
 
+test_that("get_k_bounds_unrest properly computes bounds 5", {
+    set.seed(1234)
+    nsim <- 500
+    lengthGrid <- 500
+    
+    # Generating a bunch of correlation draws
+    sims_rho_Tz <- 2 * runif(nsim) - 1
+    sims_rho_Ty <- 2 * runif(nsim) - 1
+    sims_rho_zy <- 2 * runif(nsim) - 1
+    obs <- list(r_Ty = sims_rho_Ty,
+                r_zy = sims_rho_zy,
+                r_Tz = sims_rho_Tz,
+                T_Rsq = rep(0, nsim))
+    
+    # Getting unrestricted bounds for kappa
+    k_bounds <- get_k_bounds_unrest(obs, tilde = FALSE)
+    k_lower <- ((sims_rho_Ty^2) + (sims_rho_Tz^2) - 2 * sims_rho_Ty * sims_rho_Tz * 
+                  sims_rho_zy) / (1 - (sims_rho_zy^2))
+    k_upper <- rep(1, nsim)
+    
+    expect_equal(k_bounds$Lower, k_lower)
+    expect_equal(k_bounds$Upper, k_upper)
+})
+
 test_that("get_r_uz_bounds_unrest properly computes bounds 1", {
   obs <- list(r_Ty = 0.5,
               r_Tz = 0.5,

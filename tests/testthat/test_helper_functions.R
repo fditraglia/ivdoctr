@@ -4,10 +4,13 @@ test_that("quadratic solvers",{
   a <- c(1, 2, 2, 4)
   b <- c(0, 0, 0, -16)
   c <- c(-1, 0, 1, 16)
-  expect_equal(solve_quadratic_real(a, b, c),
-               cbind(c(-1, 0, NA, 2), c(1, 0, NA, 2)))
-  expect_equal(solve_quadratic(2, 0, 1),
-               data.frame(-i/sqrt(2), i/sqrt(2), TRUE))
+  expected_answer1 <- data.frame(x1 = c(-1, 0, NA, 2), x2 = c(1, 0, NA, 2))
+  ans1 <- solve_quadratic_real(a, b, c)
+  expect_equal(expected_answer1, ans1)
+  
+  expected_answer2 <- data.frame(root1 = -1i/sqrt(2), root2 = 1i/sqrt(2), real = FALSE)
+  ans2 <- solve_quadratic(2, 0, 1)
+  expect_equal(expected_answer2, ans2)
 })
 
 test_that("cubic solvers", {
@@ -70,7 +73,7 @@ test_that("rectangle points are generated properly", {
   ytop <- 1
   step_x <- 1
   step_y <- 1
-  expected <- list(x = c(0, 1, 0, 1, 0),
+  expected <- list(x = c(0, 1, 1, 0, 0),
                    y = c(0, 0, 1, 1, 0))
   ans <- rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
   expect_equal(expected, ans)
@@ -83,8 +86,8 @@ test_that("rectangle points are generated properly", {
   ytop <- 1
   step_x <- 0.5
   step_y <- 0.5
-  expected <- list(x = c(0, 0.5, 1, 0, 0.5, 1, 0, 0.5, 1, 0),
-                   y = c(0, 0, 0, 0.5, 0.5, 0.5, 1, 1, 1, 0))
+  expected <- list(x = c(0, 0.5, 1, 1, 1, 0.5, 0, 0, 0),
+                   y = c(0, 0, 0, 0.5, 1, 1, 1, 0.5, 0))
   ans <- rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
   expect_equal(expected, ans)
 })

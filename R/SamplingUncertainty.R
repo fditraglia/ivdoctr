@@ -116,12 +116,12 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                                  obs_draws[!empty, ])
     beta_upper <- get_beta_upper(r_TstarU_min, k_min[!empty], k_max,
                                  obs_draws[!empty, ])
-    #rho_uz_lower_restricted <- # Not yet implemented
-    #rho_uz_upper_restricted <- # Not yet implemented
+    rho_uz_restricted <- get_r_uz_bounds(r_TstarU_min, r_TstarU_max, 
+                                               k_min, k_max, obs_draws)
     restricted <- data.frame(beta_lower = beta_lower,
                              beta_upper = beta_upper)
-                             #r_uz_lower = r_uz_lower_restricted,
-                             #r_uz_upper = r_uz_upper_restricted)
+                             r_uz_lower = r_uz_restricted$min,
+                             r_uz_upper = r_uz__restricted$max)
   } else {
     restricted <- NULL
   }
