@@ -1,3 +1,5 @@
+context("Identified Set")
+
 test_that("Projecting out without controls returns same data", {
   y <- c(2, 4, 6, 8)
   x <- 2 * y
@@ -93,7 +95,8 @@ test_that("get_k_bounds_unrest properly computes bounds 4", {
   expect_equal(expected_answer, ans)
 })
 
-test_that("get_k_bounds_unrest properly computes bounds 5", {
+test_that("get_k_bounds_unrest properly computes bounds 5. This tests for 
+          vectorization as well", {
     set.seed(1234)
     nsim <- 500
     lengthGrid <- 500
@@ -137,6 +140,26 @@ test_that("get_r_uz_bounds_unrest properly computes bounds 2", {
   expect_equal(expected_answer, ans)
 })
 
+test_that("get_r_uz_bounds_unrest properly is vectorized", {
+  obs <- list(r_Ty = rep(-0.5, 10),
+              r_Tz = rep(0.5, 10),
+              r_zy = rep(0.5, 10),
+              T_Rsq = rep(0.5, 10))
+  ans <- get_r_uz_bounds_unrest(obs)
+  expected_answer <- list(Lower = rep(-0.5, 10), Upper = rep(1, 10))
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_TstarU_bounds_unrest properly is vectorized", {
+  obs <- list(r_Ty = rep(-0.5, 10),
+              r_Tz = rep(0.5, 10),
+              r_zy = rep(0.5, 10),
+              T_Rsq = rep(0.5, 10))
+  ans <- get_r_TstarU_bounds_unrest(obs)
+  expected_answer <- list(Lower = rep(-1, 10), Upper = rep(1, 10))
+  expect_equal(expected_answer, ans)
+})
+
 test_that("get_r_uz computes properly 1", {
   obs <- list(r_Ty = -0.5,
               r_Tz = 0.5,
@@ -170,13 +193,146 @@ test_that("get_r_uz computes properly 3", {
   expect_equal(expected_answer, ans)
 })
 
-test_that("get_r_uz is vectorized wrt r_TstarU and k", {
-  obs <- list(r_Ty = sqrt(3/4),
-              r_Tz = 0,
-              r_zy = 1)
+test_that("get_r_uz handles multiple sigma draws for the same k and r_TstarU", {
+  obs <- list(r_Ty = c(sqrt(3/4), sqrt(3/4)),
+              r_Tz = c(0, 0),
+              r_zy = c(1, 1))
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- c(2, 2)
+  ans <- get_r_uz(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz handles multiple sigma draws each with a corresponding 
+          k and r_TstarU", {
+  obs <- list(r_Ty = c(sqrt(3/4), sqrt(3/4)),
+              r_Tz = c(0, 0),
+              r_zy = c(1, 1))
   r_TstarU <- c(0, 0)
   k <- c(1, 1)
   expected_answer <- c(2, 2)
   ans <- get_r_uz(r_TstarU, k, obs)
   expect_equal(expected_answer, ans)
+})
+
+test_that("get_r_uz throws error with values of k and r_TstarU that are the 
+          wrong dimension", {
+  obs <- list(r_Ty = c(sqrt(3/4), sqrt(3/4), sqrt(3/4)),
+              r_Tz = c(0, 0, 0),
+              r_zy = c(1, 1, 1))
+  r_TstarU <- c(0, 0)
+  k <- c(1, 1)
+  expect_error(get_r_uz(r_TstarU, k, obs))
+})
+
+test_that("get_M properly computes M", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 1)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- sqrt(10)
+  ans <- get_M(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_s_u properly computes s_u", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 0,
+              r_zy = 1,
+              s2_y = 1)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- 1 / 2
+  ans <- get_s_u(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_s_u properly computes s_u for multiple simulations", {
+  obs <- list(r_Ty = c(sqrt(3/4), sqrt(3/4), sqrt(3/4)),
+              r_Tz = c(0, 0, 0),
+              r_zy = c(1, 1, 1),
+              s2_y = c(1, 1, 1))
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- c(1/2, 1/2, 1/2)
+  ans <- get_s_u(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_s_u properly computes s_u for multiple simulations and
+          corresponding values of r_TstarU and k", {
+  obs <- list(r_Ty = c(sqrt(3/4), sqrt(3/4), sqrt(3/4)),
+              r_Tz = c(0, 0, 0),
+              r_zy = c(1, 1, 1),
+              s2_y = c(1, 1, 1))
+  r_TstarU <- c(0, 0, 0)
+  k <- c(1, 1, 1)
+  expected_answer <- c(1/2, 1/2, 1/2)
+  ans <- get_s_u(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_s_u throws an error if multiple simulations do not have
+          corresponding values of r_TstarU and k", {
+  obs <- list(r_Ty = rep(sqrt(3/4), 3),
+              r_Tz = rep(0, 3),
+              r_zy = rep(1, 3),
+              s2_y = rep(1, 3))
+  r_TstarU <- rep(0, 2)
+  k <- rep(1, 2)
+  expect_error(get_s_u(r_TstarU, k, obs))
+})
+
+test_that("get_beta properly computes beta", {
+  obs <- list(r_Ty = sqrt(3/4),
+              r_Tz = 1,
+              r_zy = 1,
+              s2_y = 1,
+              s2_T = 1)
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- sqrt(3) / 2
+  ans <- get_beta(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_beta properly computes beta for multiple simulations", {
+  obs <- list(r_Ty = rep(sqrt(3/4), 3),
+              r_Tz = rep(1, 3),
+              r_zy = rep(1, 3),
+              s2_y = rep(1, 3),
+              s2_T = rep(1, 3))
+  r_TstarU <- 0
+  k <- 1
+  expected_answer <- rep(sqrt(3) / 2, 3)
+  ans <- get_beta(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_beta properly computes beta for multiple simulations each 
+          with a corresponding r_TstarU and k.", {
+  obs <- list(r_Ty = rep(sqrt(3/4), 3),
+              r_Tz = rep(1, 3),
+              r_zy = rep(1, 3),
+              s2_y = rep(1, 3),
+              s2_T = rep(1, 3))
+  r_TstarU <- rep(0, 3)
+  k <- rep(1, 3)
+  expected_answer <- rep(sqrt(3) / 2, 3)
+  ans <- get_beta(r_TstarU, k, obs)
+  expect_equal(expected_answer, ans)
+})
+
+test_that("get_beta throws an error when multiple simulations do not have
+          a corresponding r_TstarU and k.", {
+  obs <- list(r_Ty = rep(sqrt(3/4), 3),
+              r_Tz = rep(1, 3),
+              r_zy = rep(1, 3),
+              s2_y = rep(1, 3),
+              s2_T = rep(1, 3))
+  r_TstarU <- rep(0, 2)
+  k <- rep(1, 2)
+  expect_error(get_beta(r_TstarU, k, obs))
 })

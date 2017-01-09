@@ -7,7 +7,17 @@
 rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
 }
 \arguments{
-\item{step_y}{}
+\item{step_x}{The step size of the x coordinates}
+
+\item{step_y}{The step size of the y coordinates}
+
+\item{xlower}{The left side of the rectangle}
+
+\item{xupper}{The right side of the rectangle}
+
+\item{ylower}{The bottom of the rectangle}
+
+\item{yupper}{The top of the rectangle}
 }
 \description{
 Construct vectors of points that outline a rectangle.

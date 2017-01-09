@@ -1,13 +1,13 @@
 #' Construct vectors of points that outline a rectangle.
 #'
-#' @param xlower
-#' @param xupper
-#' @param ylower
-#' @param yupper
-#' @param step_x
-#' @param step_y
+#' @param xlower The left side of the rectangle
+#' @param xupper The right side of the rectangle
+#' @param ylower The bottom of the rectangle
+#' @param yupper The top of the rectangle
+#' @param step_x The step size of the x coordinates
+#' @param step_y The step size of the y coordinates
 #'
-#' @return
+#' @return List of x coordinates and y coordinates
 #' @export
 #'
 #' @examples

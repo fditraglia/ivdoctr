@@ -45,7 +45,7 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
   }
 }
 
-# Evaluates the corners given user bounds. Vectorized wrt r_TstarU and k bounds.
+# Evaluates the corners given user bounds. Vectorized wrt multiple draws of obs.
 candidate1 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
     corner1 <- get_r_uz(r_TstarU_upper, k_upper, obs)
     corner2 <- get_r_uz(r_TstarU_lower, k_lower, obs)
@@ -58,15 +58,21 @@ candidate1 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
     return(ans)
 }
 
-# Evaluates the edge where k is on the boundary. Vectorized wrt r_TstarU and k bounds.
+# Evaluates the edge where k is on the boundary. Vectorized wrt multiple draws
+# of obs.
 candidate2 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
-    k_bounds <- cbind(k_lower, k_upper)
-    a <- with(obs, r_Tz * sqrt(k_bounds - r_Ty^2) / (r_Ty * r_Tz - k_bounds * r_zy))
+    a_lower <- with(obs, r_Tz * sqrt(k_lower - r_Ty^2) / 
+                        (r_Ty * r_Tz - k_lower * r_zy))
+    a_upper <- with(obs, r_Tz * sqrt(k_upper - r_Ty^2) / 
+                        (r_Ty * r_Tz - k_upper * r_zy))
+    a <- cbind(a_lower, a_upper)
     r <- -1 * a / sqrt(1 + a^2)
     r <- ifelse(r <= r_TstarU_upper & r >= r_TstarU_lower, r, NA)
-    edges <- get_r_uz(r, k_bounds, obs)
-    min_edge <- pmin(edges[, 1], edges[, 2], na.rm = TRUE)
-    max_edge <- pmax(edges[, 1], edges[, 2], na.rm = TRUE)
+    
+    edges_lower <- get_r_uz(r[, 1], k_lower, obs)
+    edges_upper <- get_r_uz(r[, 2], k_upper, obs)
+    min_edge <- pmin(edges_lower, edges_upper, na.rm = TRUE)
+    max_edge <- pmax(edges_lower, edges_upper, na.rm = TRUE)
     ans <- list(min_edge = min_edge, 
                 max_edge = max_edge)
     return(ans)
@@ -74,32 +80,63 @@ candidate2 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
 
 # Evaluates the edge where r_TstarU is on the boundary. 
 candidate3 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
-  r_TstarU_bounds <- c(r_TstarU_lower, r_TstarU_upper)
-  # Getting cubic coefficients
-  d <- with(obs, -r_Tz ^ 2 * r_TstarU_bounds ^ 2)
-  c <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_bounds ^ 2 + 
-                     ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) * 
-                     (1 - r_TstarU_bounds ^ 2))
-  b <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_bounds ^ 2 - 
-                  2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) * 
-                      (r_Tz * r_Ty ^ 3) * (1 - r_TstarU_bounds ^ 2))
-  a <- rep(with(obs, r_Ty ^ 6 * r_Tz ^ 2), 2)
-  coefs <- cbind(a, b, c, d)
-  
-  # Getting roots of cubic
-  all_roots <- apply(coefs, 1, polyroot)
-  real_roots <- Re(unlist(all_roots))
-  real_roots <- real_roots[(real_roots >= k_lower) & (real_roots <= k_upper)]
+  # Getting cubic coefficients for lower bound
+  d_lower <- with(obs, -r_Tz ^ 2 * r_TstarU_lower ^ 2)
+  c_lower <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_lower ^ 2 + 
+                       ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) * 
+                       (1 - r_TstarU_lower ^ 2))
+  b_lower <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_lower ^ 2 - 
+                       2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) * 
+                       (r_Tz * r_Ty ^ 3) * (1 - r_TstarU_lower ^ 2))
+  a_lower <- with(obs, r_Ty ^ 6 * r_Tz ^ 2)
+  coefs_lower <- cbind(a_lower, b_lower, c_lower, d_lower)
 
-  # Evaluating all combinations of roots and bounds for r_TstarU
-  r_uz <- outer(real_roots, r_TstarU_bounds, 
-                function(real_roots, r_TstarU_bounds) 
-                  get_r_uz(r_TstarU_bounds, real_roots, obs))
+  # Getting roots of cubic for lower bound
+  all_roots_lower <- apply(coefs_lower, 1, polyroot)
+  real_roots_lower <- t(Re(all_roots_lower))
+  real_roots_lower <- ifelse(real_roots_lower >= k_lower &
+                             real_roots_lower <= k_upper, real_roots_lower, NA)
+
+  # Getting cubic coefficients for upper bound
+  d_upper <- with(obs, -r_Tz ^ 2 * r_TstarU_upper ^ 2)
+  c_upper <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_upper ^ 2 + 
+                       ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) * 
+                       (1 - r_TstarU_upper ^ 2))
+  b_upper <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_upper ^ 2 - 
+                       2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) * 
+                       (r_Tz * r_Ty ^ 3) * (1 - r_TstarU_upper ^ 2))
+  a_upper <- with(obs, r_Ty ^ 6 * r_Tz ^ 2)
+  coefs_upper <- cbind(a_upper, b_upper, c_upper, d_upper)
+
+  # Getting roots of cubic for upper bound
+  all_roots_upper <- apply(coefs_upper, 1, polyroot)
+  real_roots_upper <- t(Re(all_roots_upper))
+  real_roots_upper <- ifelse(real_roots_upper >= k_lower &
+                             real_roots_upper <= k_upper, real_roots_upper, NA)
+  
+  # Evaluating all combinations of roots and bounds for r_TstarU (upper bound)
+  r_uz_upper <- matrix(, nrow = nrow(real_roots_upper), 
+                       ncol = ncol(real_roots_upper))
+  r_TstarU_upper <- rep(r_TstarU_upper, nrow(real_roots_upper))
+  for (i in 1:ncol(real_roots_upper)) {
+    r_uz_upper[, i] <- get_r_uz(r_TstarU_upper, real_roots_upper[, i], obs)
+  }
+  r_uz_upper <- as.vector(r_uz_upper)
+  
+  # Evaluating all combinations of roots and bounds for r_TstarU (lower bound)
+  r_uz_lower <- matrix(, nrow = nrow(real_roots_lower), 
+                       ncol = ncol(real_roots_lower))
+  r_TstarU_lower <- rep(r_TstarU_lower, nrow(real_roots_lower))
+  for (i in 1:ncol(real_roots_lower)) {
+    r_uz_lower[, i] <- get_r_uz(r_TstarU_lower, real_roots_lower[, i], obs)
+  }
+  r_uz_lower <- as.vector(r_uz_lower)
   
   # Getting max and min if there are real roots
-  min_edge <- ifelse(length(real_roots) > 0, min(r_uz), NA)
-  max_edge <- ifelse(length(real_roots) > 0, max(r_uz), NA)
+  min_edge <- pmin(r_uz_lower, r_uz_upper, na.rm = TRUE)
+  max_edge <- pmax(r_uz_lower, r_uz_upper, na.rm = TRUE)
   ans <- list(r_uz = list(min_edge = min_edge, max_edge = max_edge),
-              k_roots = real_roots)
+              k_roots = list(real_roots_lower = real_roots_lower, 
+                             real_roots_upper = real_roots_upper))
   return(ans)
 }

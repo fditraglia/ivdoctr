@@ -19,18 +19,6 @@ test_that("cubic solvers", {
                           three_real = TRUE))
 })
 
-test_that("vech and devech", {
-  M <- matrix(c(11, 12, 13, 14,
-                12, 22, 23, 24,
-                13, 23, 33, 34,
-                14, 24, 34, 44), 4, 4, byrow = TRUE)
-  v <- drop(vech(M))
-  expect_equal(v, c(11:14, 22:24, 33:34, 44))
-  expect_that(vech(matrix(1:6, 3, 2)), throws_error())
-  expect_equal(devech(v, 4), M)
-  expect_that(devech(v, 3), throws_error())
-})
-
 test_that("toList", {
   m1 <- rep(1, 4)
   m2 <- rep(2, 4)

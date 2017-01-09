@@ -1,7 +1,14 @@
 # TODO File
-1. Double check and write tests for IdentifiedSet lines 97-end
+1. Double check and write tests for IdentifiedSet lines 156-end (checking the beta bounds)
 2. Do we still need the quadratic and cubic solvers from helper_functions? 
-Requires a double check that as implemented, bounds are not too sensitive. We'll see
+Requires a double check that as implemented, bounds are not too sensitive.
 3. Simplify SamplingUncertainty
+    - draw_sigma_CLT and draw_sigma_jeffreys can be combined with a 
+      Jeffreys = T/F toggle
 4. Simplify SummarizeAndPlot
 5. Regenerate continuous tables from paper
+6. Check exogenous variables for Weber table becaues IV numbers are not the same
+7. Make get_r_uz_bounds vectorized
+    - In progress. Fixed candidate1 and candidate 2 functions. Working on candidate 3 function.
+8. Fix toList() function in draw_sigma_CLT 
+    - This was caused by generateTable file
