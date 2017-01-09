@@ -9,6 +9,6 @@ Requires a double check that as implemented, bounds are not too sensitive.
 5. Regenerate continuous tables from paper
 6. Check exogenous variables for Weber table becaues IV numbers are not the same
 7. Make get_r_uz_bounds vectorized
-    - In progress. Fixed candidate1 and candidate 2 functions. Working on candidate 3 function.
+    - Done.
 8. Fix toList() function in draw_sigma_CLT 
     - This was caused by generateTable file
