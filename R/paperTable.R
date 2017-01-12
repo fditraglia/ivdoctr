@@ -18,46 +18,69 @@ make_I(stats, "Colonial Origins")
 
 # Part II of table
 ## First prior
-draws <- draw_bounds("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
-                    r_TstarU_restriction = c(0, 0.9),
-                    k_restriction = c(0.00001, 0.6),
-                    n_draws = 5000, Jeffreys = TRUE)
-freq_1 <- summarize_bounds(draws)
+bounds_1 <- draw_bounds("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
+                      r_TstarU_restriction = c(0, 0.9),
+                      k_restriction = c(0.00001, 0.6),
+                      n_draws = 5000, Jeffreys = TRUE)
+freq_1 <- summarize_bounds(bounds_1)
+
+posterior_1 <- draw_posterior("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
+                             r_TstarU_restriction = c(0, 0.9),
+                            k_restriction = c(0.000001, 0.6),
+                            n_RF_draws = 1000,
+                          n_IS_draws = 1000,
+                          Jeffreys = TRUE,
+                          resample = FALSE)
+bayes_1 <- summarize_posterior(posterior_1)
+
 stats <- list(p_empty = freq_1$p_empty,
-             p_valid = freq_1$p_valid,
-             beta_lower = freq_1$restricted$median,
-             beta_upper = freq_1$restricted$median,
-             beta_lower_lower_bound = freq_1$restricted$lower[1],
-             beta_lower_upper_bound = freq_1$restricted$upper[1],
-             beta_upper_lower_bound = freq_1$restricted$lower[2],
-             beta_upper_upper_bound = freq_1$restricted$upper[2])
-make_II(stats, "$(\\kappa, \\rho_{T^*u}) \\in (0, 0.6] \\times [0, 0.9]")
+              p_valid = freq_1$p_valid,
+              beta_lower_median = freq_1$restricted$median,
+              beta_upper_median = freq_1$restricted$median,
+              beta_lower_lower_bound = freq_1$restricted$lower[1],
+              beta_lower_upper_bound = freq_1$restricted$upper[1],
+              beta_upper_lower_bound = freq_1$restricted$lower[2],
+              beta_upper_upper_bound = freq_1$restricted$upper[2],
+              r_uz_median = bayes_1$HPDI$median[1],
+              beta_bayes_median = bayes_1$HPDI$median[2],
+              r_uz_lower_bound = bayes_1$HPDI$lower[1],
+              beta_bayes_lower_bound = bayes_1$HPDI$lower[2],
+              r_uz_upper_bound = bayes_1$HPDI$upper[1],
+              beta_bayes_upper_bound = bayes_1$HPDI$upper[2])
+make_II_III(stats, "$(\\kappa, \\rho_{T^*u}) \\in (0, 0.6] \\times [0, 0.9]")
 
 ## Second prior
-draws <- draw_bounds("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
-                    r_TstarU_restriction = c(0, 0.9),
-                    k_restriction = c(0.6, 1),
-                    n_draws = 5000, Jeffreys = TRUE)
-freq_2 <- summarize_bounds(draws)
-stats <- list(p_empty = freq_2$p_empty,
-             p_valid = freq_2$p_valid,
-             beta_lower_median = freq_2$restricted$median[1],
-             beta_upper_median = freq_2$restricted$median[2],
-             beta_lower_lower_bound = freq_2$restricted$lower[1],
-             beta_lower_upper_bound = freq_2$restricted$upper[1],
-             beta_upper_lower_bound = freq_2$restricted$lower[2],
-             beta_upper_upper_bound = freq_2$restricted$upper[2])
-make_II(stats, "$(\\kappa, \\rho_{T^*u}) \\in (0.6, 1] \\times [0, 0.9]")
-
-# Part III of the table
-## First prior
-draws <- draw_posterior("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
+bounds_2 <- draw_bounds("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
                         r_TstarU_restriction = c(0, 0.9),
-                        k_restriction = c(0.000001, 0.6),
-                        n_RF_draws = 1000,
-                        n_IS_draws = 1000,
-                        Jeffreys = TRUE,
-                        resample = FALSE)
+                        k_restriction = c(0.6, 1),
+                        n_draws = 5000, Jeffreys = TRUE)
+freq_2 <- summarize_bounds(bounds_2)
+
+posterior_2 <- draw_posterior("logpgp95", "avexpr", "logem4", colonial, controls = NULL,
+                              r_TstarU_restriction = c(0, 0.9),
+                              k_restriction = c(0.6, 1),
+                              n_RF_draws = 1000,
+                              n_IS_draws = 1000,
+                              Jeffreys = TRUE,
+                              resample = FALSE)
+bayes_2 <- summarize_posterior(posterior_2)
+
+stats <- list(p_empty = freq_2$p_empty,
+              p_valid = freq_2$p_valid,
+              beta_lower_median = freq_2$restricted$median,
+              beta_upper_median = freq_2$restricted$median,
+              beta_lower_lower_bound = freq_2$restricted$lower[1],
+              beta_lower_upper_bound = freq_2$restricted$upper[1],
+              beta_upper_lower_bound = freq_2$restricted$lower[2],
+              beta_upper_upper_bound = freq_2$restricted$upper[2],
+              r_uz_median = bayes_2$HPDI$median[1],
+              beta_bayes_median = bayes_2$HPDI$median[2],
+              r_uz_lower_bound = bayes_2$HPDI$lower[1],
+              beta_bayes_lower_bound = bayes_2$HPDI$lower[2],
+              r_uz_upper_bound = bayes_2$HPDI$upper[1],
+              beta_bayes_upper_bound = bayes_2$HPDI$upper[2])
+make_II_III(stats, "$(\\kappa, \\rho_{T^*u}) \\in (0.6, 1] \\times [0, 0.9]")
+
 
 y_name <- "logpgp95"
 T_name <- "avexpr"

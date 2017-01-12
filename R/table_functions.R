@@ -41,32 +41,24 @@ make_I <- function(stats, example_name) {
   paste(est, se, sep = '\n')
 }
 
-make_II <- function(stats, prior_name) {
+make_II_III <- function(stats, prior_name) {
     probs <- with(stats, sapply(c(p_empty, p_valid), format_est))
 
-    medians <- with(stats, sapply(c(beta_lower_median, beta_upper_median), format_est))
+    medians <- with(stats, sapply(c(beta_lower_median,
+                                    beta_upper_median,
+                                    r_uz_median,
+                                    beta_bayes_median), format_est))
 
     HPDIs <- with(stats, sapply(c(beta_lower_lower_bound,
                                   beta_lower_upper_bound,
                                   beta_upper_lower_bound,
-                                  beta_upper_upper_bound),
-                                format_est))
+                                  beta_upper_upper_bound,
+                                  r_uz_lower_bound,
+                                  r_uz_upper_bound,
+                                  beta_bayes_lower_bound,
+                                  beta_bayes_upper_bound), format_est))
 
   row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, medians), shift = 5))
-  row2 <- make_tex_row(HPDIs, shift = 7)
-  paste(row1, row2, sep = '\n')
-}
-
-make_III <- function(stats, prior_name) {
-    medians <- c(format_est(stats['b_lower', 'median']),
-                 format_est(stats['b_upper', 'median']))
-
-    HPDIs <- c(format_HPDI(stats['b_lower', 'lower'],
-                           stats['b_lower', 'upper']),
-               format_HPDI(stats['b_upper', 'lower'],
-                           stats['b_upper', 'upper']))
-
-  row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(medians, shift = 5))
   row2 <- make_tex_row(HPDIs, shift = 7)
   paste(row1, row2, sep = '\n')
 }
