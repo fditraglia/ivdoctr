@@ -2,15 +2,15 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
                             k_lower, k_upper, obs) {
   # If beliefs are not restrictive, function returns unrestricted bounds
   unrestricted <- get_bounds_unrest(obs)
-  if (r_TstarU_lower <= unrestricted$r_TstarU$Lower &
-      r_TstarU_upper >= unrestricted$r_TstarU$Upper &
-      k_lower <= unrestricted$k$Lower &
-      k_upper >= unrestricted$k$Upper) {
+  if (sum(r_TstarU_lower <= unrestricted$r_TstarU$Lower &
+          r_TstarU_upper >= unrestricted$r_TstarU$Upper &
+          k_lower <= unrestricted$k$Lower &
+          k_upper >= unrestricted$k$Upper) > 0) {
     warning("Beliefs are not restrictive, returning unrestricted bounds")
     return(unrestricted)
   } else {
 
-    # Storing the more restrictive bounds for each parameter 
+    # Storing the more restrictive bounds for each parameter
     # (either user or unrestricted)
     r_TstarU_lower_bound <- ifelse(r_TstarU_lower <= unrestricted$r_TstarU$Lower,
                                    unrestricted$r_TstarU$Lower,
@@ -19,25 +19,25 @@ get_r_uz_bounds <- function(r_TstarU_lower, r_TstarU_upper,
                                    unrestricted$r_TstarU$Upper,
                                    r_TstarU_upper)
     k_lower_bound <- ifelse(k_lower <= unrestricted$k$Lower,
-                            unrestricted$k$Lower, 
+                            unrestricted$k$Lower,
                             k_lower)
     k_upper_bound <- ifelse(k_upper >= unrestricted$k$Upper,
-                            unrestricted$k$Upper, 
+                            unrestricted$k$Upper,
                             k_upper)
-    
+
     # Finding r_uz bounds based on restricted bounds above
     # Candidate Set I - Corner for both kappa and rho_TstarU
-    set1 <- candidate1(r_TstarU_lower_bound, r_TstarU_upper_bound, 
+    set1 <- candidate1(r_TstarU_lower_bound, r_TstarU_upper_bound,
                        k_lower_bound, k_upper_bound, obs)
-  
+
     # Candidate Set II - Corner for kappa, interior for rho_TstarU
-    set2 <- candidate2(r_TstarU_lower_bound, r_TstarU_upper_bound, 
+    set2 <- candidate2(r_TstarU_lower_bound, r_TstarU_upper_bound,
                        k_lower_bound, k_upper_bound, obs)
 
     # Candidate Set III - Interior for kappa, corner for rho_TstarU
     set3 <- candidate3(r_TstarU_lower_bound, r_TstarU_upper_bound,
                        k_lower_bound, k_upper_bound, obs)
-    
+
     # Finally: overall max and min
     r_uz_max <- pmax(set1$max_corner, set2$max_edge, set3$r_uz$max_edge, na.rm = TRUE)
     r_uz_min <- pmin(set1$min_corner, set2$min_edge, set3$r_uz$min_edge, na.rm = TRUE)
@@ -53,7 +53,7 @@ candidate1 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
     corner4 <- get_r_uz(r_TstarU_lower, k_upper, obs)
     min_corner <- pmin(corner1, corner2, corner3, corner4, na.rm = TRUE)
     max_corner <- pmax(corner1, corner2, corner3, corner4, na.rm = TRUE)
-    ans <- list(min_corner = min_corner, 
+    ans <- list(min_corner = min_corner,
                 max_corner = max_corner)
     return(ans)
 }
@@ -61,32 +61,32 @@ candidate1 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
 # Evaluates the edge where k is on the boundary. Vectorized wrt multiple draws
 # of obs.
 candidate2 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
-    a_lower <- with(obs, r_Tz * sqrt(k_lower - r_Ty^2) / 
+    a_lower <- with(obs, r_Tz * sqrt(k_lower - r_Ty ^ 2) /
                         (r_Ty * r_Tz - k_lower * r_zy))
-    a_upper <- with(obs, r_Tz * sqrt(k_upper - r_Ty^2) / 
+    a_upper <- with(obs, r_Tz * sqrt(k_upper - r_Ty ^ 2) /
                         (r_Ty * r_Tz - k_upper * r_zy))
     a <- cbind(a_lower, a_upper)
-    r <- -1 * a / sqrt(1 + a^2)
+    r <- -1 * a / sqrt(1 + a ^ 2)
     r <- ifelse(r <= r_TstarU_upper & r >= r_TstarU_lower, r, NA)
-    
+
     edges_lower <- get_r_uz(r[, 1], k_lower, obs)
     edges_upper <- get_r_uz(r[, 2], k_upper, obs)
     min_edge <- pmin(edges_lower, edges_upper, na.rm = TRUE)
     max_edge <- pmax(edges_lower, edges_upper, na.rm = TRUE)
-    ans <- list(min_edge = min_edge, 
+    ans <- list(min_edge = min_edge,
                 max_edge = max_edge)
     return(ans)
 }
 
-# Evaluates the edge where r_TstarU is on the boundary. 
+# Evaluates the edge where r_TstarU is on the boundary.
 candidate3 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
   # Getting cubic coefficients for lower bound
   d_lower <- with(obs, -r_Tz ^ 2 * r_TstarU_lower ^ 2)
-  c_lower <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_lower ^ 2 + 
-                       ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) * 
+  c_lower <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_lower ^ 2 +
+                       ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) *
                        (1 - r_TstarU_lower ^ 2))
-  b_lower <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_lower ^ 2 - 
-                       2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) * 
+  b_lower <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_lower ^ 2 -
+                       2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) *
                        (r_Tz * r_Ty ^ 3) * (1 - r_TstarU_lower ^ 2))
   a_lower <- with(obs, r_Ty ^ 6 * r_Tz ^ 2)
   coefs_lower <- cbind(a_lower, b_lower, c_lower, d_lower)
@@ -97,13 +97,21 @@ candidate3 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
   real_roots_lower <- ifelse(real_roots_lower >= k_lower &
                              real_roots_lower <= k_upper, real_roots_lower, NA)
 
+  # Normally this should be solving a cubic which gives 3 solutions. However, if
+  # one of the r_TstarU bounds is 0, it reduces to a quadratic. For dimensionality
+  # purposes, this preserves the 3rd "root" that should be generated, but sets it
+  # to NA
+  if (ncol(real_roots_lower) == 2) {
+    real_roots_lower <- cbind(real_roots_lower, NA)
+  }
+
   # Getting cubic coefficients for upper bound
   d_upper <- with(obs, -r_Tz ^ 2 * r_TstarU_upper ^ 2)
-  c_upper <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_upper ^ 2 + 
-                       ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) * 
+  c_upper <- with(obs, 3 * r_Ty ^ 2 * r_Tz ^ 2 * r_TstarU_upper ^ 2 +
+                       ((2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) ^ 2) *
                        (1 - r_TstarU_upper ^ 2))
-  b_upper <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_upper ^ 2 - 
-                       2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) * 
+  b_upper <- with(obs, -3 * r_Ty ^ 4 * r_Tz ^ 2 * r_TstarU_upper ^ 2 -
+                       2 * (2 * r_Ty * r_Tz - r_zy * r_Ty ^ 2) *
                        (r_Tz * r_Ty ^ 3) * (1 - r_TstarU_upper ^ 2))
   a_upper <- with(obs, r_Ty ^ 6 * r_Tz ^ 2)
   coefs_upper <- cbind(a_upper, b_upper, c_upper, d_upper)
@@ -113,30 +121,35 @@ candidate3 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
   real_roots_upper <- t(Re(all_roots_upper))
   real_roots_upper <- ifelse(real_roots_upper >= k_lower &
                              real_roots_upper <= k_upper, real_roots_upper, NA)
-  
-  # Evaluating all combinations of roots and bounds for r_TstarU (upper bound)
-  r_uz_upper <- matrix(, nrow = nrow(real_roots_upper), 
+  # Normally this should be solving a cubic which gives 3 solutions. However, if
+  # one of the r_TstarU bounds is 0, it reduces to a quadratic. For dimensionality
+  # purposes, this preserves the 3rd "root" that should be generated, but sets it
+  # to NA
+  if (ncol(real_roots_upper) == 2) {
+    real_roots_upper <- cbind(real_roots_upper, NA)
+  }
+
+    # Evaluating all combinations of roots and bounds for r_TstarU (upper bound)
+  r_uz_upper <- matrix(NA, nrow = nrow(real_roots_upper),
                        ncol = ncol(real_roots_upper))
-  r_TstarU_upper <- rep(r_TstarU_upper, nrow(real_roots_upper))
   for (i in 1:ncol(real_roots_upper)) {
     r_uz_upper[, i] <- get_r_uz(r_TstarU_upper, real_roots_upper[, i], obs)
   }
   r_uz_upper <- as.vector(r_uz_upper)
-  
+
   # Evaluating all combinations of roots and bounds for r_TstarU (lower bound)
-  r_uz_lower <- matrix(, nrow = nrow(real_roots_lower), 
+  r_uz_lower <- matrix(NA, nrow = nrow(real_roots_lower),
                        ncol = ncol(real_roots_lower))
-  r_TstarU_lower <- rep(r_TstarU_lower, nrow(real_roots_lower))
   for (i in 1:ncol(real_roots_lower)) {
     r_uz_lower[, i] <- get_r_uz(r_TstarU_lower, real_roots_lower[, i], obs)
   }
   r_uz_lower <- as.vector(r_uz_lower)
-  
+
   # Getting max and min if there are real roots
   min_edge <- pmin(r_uz_lower, r_uz_upper, na.rm = TRUE)
   max_edge <- pmax(r_uz_lower, r_uz_upper, na.rm = TRUE)
   ans <- list(r_uz = list(min_edge = min_edge, max_edge = max_edge),
-              k_roots = list(real_roots_lower = real_roots_lower, 
+              k_roots = list(real_roots_lower = real_roots_lower,
                              real_roots_upper = real_roots_upper))
   return(ans)
 }

@@ -48,8 +48,11 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
                         # uncorrelated with both Tobs and z
   }
 
-  Sigma_draws <- ifelse(Jeffreys, draw_sigma_jeffreys(y, Tobs, z, n_draws),
-                                  draw_sigma_CLT(y, Tobs, z, n_draws))
+  if (Jeffreys) {
+    Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, n_draws)
+  } else {
+    draw_sigma_CLT(y, Tobs, z, n_draws)
+  }
 
   s2_T <- Sigma_draws["Tobs", "Tobs", ]
   s2_y <- Sigma_draws["y", "y", ]
@@ -85,52 +88,52 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
                                 n_draws, Jeffreys)
   unrestricted_bounds <- get_bounds_unrest(obs_draws)
-  
+  empty <- NULL
   k_tilde_lower <- unrestricted_bounds$k_tilde$Lower
 
-  if(!is.null(r_TstarU_restriction) | !is.null(k_restriction)) {
+  if (!is.null(r_TstarU_restriction) | !is.null(k_restriction)) {
     if (!is.null(r_TstarU_restriction)) {
       r_TstarU_min <- rep(min(r_TstarU_restriction), n_draws)
       r_TstarU_max <- rep(max(r_TstarU_restriction), n_draws)
     }
-  
+
     if (!is.null(k_restriction)) {
       # User states beliefs over kappa but we work with kappa_tilde
-      k_min <- rep((min(k_restriction) - T_Rsq) / (1 - T_Rsq), n_draws)
-      k_max <- rep((max(k_restriction) - T_Rsq) / (1 - T_Rsq), n_draws)
+      k_min <- with(obs_draws, (min(k_restriction) - T_Rsq) / (1 - T_Rsq))
+      k_max <- with(obs_draws, (max(k_restriction) - T_Rsq) / (1 - T_Rsq))
       k_min <- pmax(k_tilde_lower, k_min) # vector: could vary with obs_draws row
       k_max <- pmin(1, k_max) # always a scalar
     } else {
-      k_min <- rep(k_tilde_lower, n_draws) # vector: varies with obs_draws row
+      k_min <- k_tilde_lower # vector: varies with obs_draws row
       k_max <- rep(1, n_draws) # always a scalar
     }
-  
+
     # We ensure above that but the user may have specified a k_max that is less
     # than some elements of k_tilde_lower as in one of the examples for Colonial
     # Origins from the paper. When this occurs, the identified set is empty.
     empty <- k_max < k_tilde_lower
 
     # Only compute the bounds for the non-empty identified sets
-    beta_lower <- get_beta_lower(r_TstarU_max[!empty], k_min[!empty], 
+    beta_lower <- get_beta_lower(r_TstarU_max[!empty], k_min[!empty],
                                  k_max[!empty], obs_draws[!empty, ])
-    beta_upper <- get_beta_upper(r_TstarU_min[!empty], k_min[!empty], 
+    beta_upper <- get_beta_upper(r_TstarU_min[!empty], k_min[!empty],
                                  k_max[!empty], obs_draws[!empty, ])
-    rho_uz_restricted <- get_r_uz_bounds(r_TstarU_min[!empty], 
-                                         r_TstarU_max[!empty], 
-                                         k_min[!empty], 
-                                         k_max[!empty], 
-                                         obs_draws[!empty, ])
+    r_uz_restricted <- get_r_uz_bounds(r_TstarU_min[!empty],
+                                       r_TstarU_max[!empty],
+                                       k_min[!empty],
+                                       k_max[!empty],
+                                       obs_draws[!empty, ])
     restricted <- data.frame(beta_lower = beta_lower,
                              beta_upper = beta_upper,
                              r_uz_lower = r_uz_restricted$min,
-                             r_uz_upper = r_uz__restricted$max)
+                             r_uz_upper = r_uz_restricted$max)
   } else {
     restricted <- NULL
   }
-  unrestricted = data.frame(k_tilde_lower = k_tilde_lower,
-                            k_lower = unrestricted_bounds$k$Lower,
-                            r_uz_lower = unrestricted_bounds$r_uz$Lower,
-                            r_uz_upper = unrestricted_bounds$r_uz$Upper)
+  unrestricted <- data.frame(k_tilde_lower = k_tilde_lower,
+                             k_lower = unrestricted_bounds$k$Lower,
+                             r_uz_lower = unrestricted_bounds$r_uz$Lower,
+                             r_uz_upper = unrestricted_bounds$r_uz$Upper)
   list(observables = obs_draws,
        empty = empty,
        unrestricted = unrestricted,
@@ -176,13 +179,18 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
       k_tilde <- k_tilde[random_indices]
       r_TstarU <- r_TstarU[random_indices]
     }
+    r_uz_final <- s_u_final <- beta_final <- NULL
+
+    for (j in 1:n_IS_draws) {
+      r_uz_final[j] <- get_r_uz(r_TstarU[j], k_tilde[j], obs)
+      s_u_final[j] <- get_s_u(r_TstarU[j], k_tilde[j], obs)
+      beta_final[j] <- get_beta(r_TstarU[j], k_tilde[j], obs)
+    }
 
     posterior_draws[, , posterior_draws_index] <- cbind(
         r_TstarU,
         with(obs, (1 - T_Rsq) * k_tilde + T_Rsq), # kappa
-        get_r_uz(r_TstarU, k_tilde, obs),
-        get_s_u(r_TstarU, k_tilde, obs),
-        get_beta(r_TstarU, k_tilde, obs))
+        r_uz_final, s_u_final, beta_final)
     posterior_draws_index <- posterior_draws_index + 1
   }
   posterior_draws <- collapse_3d_array(posterior_draws)

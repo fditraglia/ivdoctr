@@ -13,11 +13,11 @@ Imports:
     MASS,
     coda,
     sandwich,
-    AER
+    AER,
+    MCMCpack
 LinkingTo: Rcpp,
     RcppArmadillo
 Suggests:
     testthat,
-    MCMCpack,
     foreign
 RoxygenNote: 5.0.1
