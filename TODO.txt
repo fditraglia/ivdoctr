@@ -1,5 +1,4 @@
 # TODO File
-1. Double check and write tests for IdentifiedSet lines 156-end (checking the beta bounds)
 2. Do we still need the quadratic and cubic solvers from helper_functions?
 Requires a double check that as implemented, bounds are not too sensitive.
 3. Simplify SamplingUncertainty
