@@ -1,16 +1,13 @@
 #' Construct vectors of points that outline a rectangle.
 #'
-#' @param xlower The left side of the rectangle
-#' @param xupper The right side of the rectangle
-#' @param ylower The bottom of the rectangle
-#' @param yupper The top of the rectangle
+#' @param xleft The left side of the rectangle
+#' @param xright The right side of the rectangle
+#' @param ybottom The bottom of the rectangle
+#' @param ytop The top of the rectangle
 #' @param step_x The step size of the x coordinates
 #' @param step_y The step size of the y coordinates
 #'
 #' @return List of x coordinates and y coordinates
-#' @export
-#'
-#' @examples
 rect_points <- function(xleft, ybottom, xright, ytop, step_x, step_y){
   x_seq <- seq(xleft, xright, step_x)
   y_seq <- seq(ybottom, ytop, step_y)
@@ -26,9 +23,6 @@ rect_points <- function(xleft, ybottom, xright, ytop, step_x, step_y){
 #' @param myarray A three-dimensional array.
 #'
 #' @return Matrix
-#' @export
-#'
-#' @examples
 collapse_3d_array <- function(myarray){
   out <- aperm(myarray, c(1, 3, 2))
   dim(out) <- c(dim(myarray)[1] * dim(myarray)[3], dim(myarray)[2])
@@ -55,14 +49,12 @@ toList <- function(myArray){
 #'
 #' @return Dataframe with columns x1, x2 and real. The first two columns contain
 #' the complex-valued roots. The third column indicates if the roots are real.
-#' @export
 #'
 #' @details This function computes an explicit solution unlike the base R
 #' function \code{polyroot} which uses an iterative approach. Unlike
 #' \code{polyroot}, \code{solve_quadratic} is vectorized in its arguments, but
 #' only accepts real-valued coefficients as inputs.
-#'
-#' @examples
+
 solve_quadratic <- function(a, b, c) {
   stopifnot(all(a != 0))
   stopifnot(is.atomic(a) && is.atomic(b) && is.atomic(c))
@@ -93,13 +85,11 @@ solve_quadratic <- function(a, b, c) {
 #'
 #' @return Dataframe with two columns, containing the roots if real and NA
 #' otherwise.
-#' @export
 #'
 #' @details \code{solve_quadratic_real} simply calls \code{solve_quadratic} and
 #' processes the results to remove any complex-valued roots. As such, it too is
 #' vectorized in its arguments.
-#'
-#' @examples
+
 solve_quadratic_real <- function(a, b, c){
   solution <- solve_quadratic(a, b, c)
   ok <- solution$real
@@ -127,9 +117,7 @@ solve_quadratic_real <- function(a, b, c){
 #' coefficient. Unlike \code{polyroot}, \code{solve_cubic}only accepts
 #' real-valued coefficients, is fully vectorized, and uses an explicit rather
 #' than iterative solution method.
-#' @export
-#'
-#' @examples
+
 solve_cubic_1 <- function(a, b, c){
   stopifnot(is.atomic(a) && is.atomic(b) && is.atomic(c))
   stopifnot(is.numeric(a) && is.numeric(b) && is.numeric(c))
@@ -172,9 +160,7 @@ solve_cubic_1 <- function(a, b, c){
 #' \code{solve_cubic_1}.
 #' @details This function is a wrapper to \code{solve_cubic_1} that allows the
 #' coefficient on the cubic term to take on an arbitrary value.
-#' @export
-#'
-#' @examples
+
 solve_cubic <- function(a, b, c, d){
   stopifnot(all(a != 0))
   solve_cubic_1(b / a, c / a, d / a)
@@ -188,9 +174,7 @@ solve_cubic <- function(a, b, c, d){
 #' @param d Numeric vector.
 #'
 #' @return Dataframe containing the roots if real, NA otherwise.
-#' @export
-#'
-#' @examples
+
 solve_cubic_real <- function(a, b, c, d){
   solution <- solve_cubic(a, b, c, d)
   x1 <- solution$root1
@@ -199,4 +183,16 @@ solve_cubic_real <- function(a, b, c, d){
   x2[ok] <- as.numeric(solution$root2[ok])
   x3[ok] <- as.numeric(solution$root3[ok])
   data.frame(root1 = x1, root2 = x2, root3 = x3)
+}
+
+#' Compute the share of draws that could contain a valid instrument.
+#'
+#' @param draws List of simulated draws
+#'
+#' @return Numeric of the share of valid draws
+
+get_p_valid <- function(draws) {
+  ans <- sum(draws$empty == FALSE & draws$restricted$r_uz_lower <= 0 &
+             draws$restricted$r_uz_upper >= 0) / length(draws$empty)
+  return(ans)
 }

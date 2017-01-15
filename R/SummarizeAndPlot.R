@@ -1,3 +1,6 @@
+#' @importFrom grDevices colorRampPalette gray
+#' @importFrom graphics layout par persp plot polygon
+#'
 get_estimates <- function(y_name, T_name, z_name, data, controls = NULL,
                           robust = FALSE) {
   first_stage <- reformulate(c(z_name, controls), response = NULL)
@@ -39,9 +42,7 @@ summarize_bounds <- function(draws) {
   restricted <- with(draws$restricted,
                      rbind(beta_lower = get_HPDI(beta_lower),
                            beta_upper = get_HPDI(beta_upper)))
-  p_valid <- sum(draws$empty == FALSE &
-                 draws$restricted$r_uz_lower <= 0 &
-                 draws$restricted$r_uz_upper >= 0) / length(draws$empty)
+  p_valid <- get_p_valid(draws)
   list(unrestricted = unrestricted,
        r_TstarU_restriction = draws$r_TstarU_restriction,
        k_restriction = draws$k_restriction,
@@ -53,9 +54,11 @@ summarize_bounds <- function(draws) {
 summarize_posterior <- function(draws) {
   HPDI <- with(draws$posterior, rbind(r_uz = get_HPDI(r_uz),
                                       beta = get_HPDI(beta)))
+  p_valid <- get_p_valid(draws)
   list(r_TstarU_restriction = draws$r_TstarU_restriction,
        k_restriction = draws$k_restriction,
        p_empty = mean(draws$empty),
+       p_valid = p_valid,
        HPDI = HPDI)
 }
 

@@ -135,7 +135,6 @@ candidate3 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
   for (i in 1:ncol(real_roots_upper)) {
     r_uz_upper[, i] <- get_r_uz(r_TstarU_upper, real_roots_upper[, i], obs)
   }
-  r_uz_upper <- as.vector(r_uz_upper)
 
   # Evaluating all combinations of roots and bounds for r_TstarU (lower bound)
   r_uz_lower <- matrix(NA, nrow = nrow(real_roots_lower),
@@ -143,11 +142,12 @@ candidate3 <- function(r_TstarU_lower, r_TstarU_upper, k_lower, k_upper, obs) {
   for (i in 1:ncol(real_roots_lower)) {
     r_uz_lower[, i] <- get_r_uz(r_TstarU_lower, real_roots_lower[, i], obs)
   }
-  r_uz_lower <- as.vector(r_uz_lower)
 
   # Getting max and min if there are real roots
-  min_edge <- pmin(r_uz_lower, r_uz_upper, na.rm = TRUE)
-  max_edge <- pmax(r_uz_lower, r_uz_upper, na.rm = TRUE)
+  min_edge <- apply(cbind(r_uz_lower, r_uz_upper), 1,
+                     function(x) ifelse(all(is.na(x)), NA, min(x, na.rm = TRUE)))
+  max_edge <- apply(cbind(r_uz_lower, r_uz_upper), 1,
+                     function(x) ifelse(all(is.na(x)), NA, max(x, na.rm = TRUE)))
   ans <- list(r_uz = list(min_edge = min_edge, max_edge = max_edge),
               k_roots = list(real_roots_lower = real_roots_lower,
                              real_roots_upper = real_roots_upper))

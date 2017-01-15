@@ -1,3 +1,5 @@
+#' @import stats
+#'
 # This function takes the data and function specification and returns the relevant
 # correlations and covariances. If there are exogenous controls, those are
 # projected out.

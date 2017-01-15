@@ -13,11 +13,10 @@ draw_sigma_CLT <- function(y, Tobs, z, n_draws) {
   }
   Sigma_draws <- apply(sims, 1, g)
   dim(Sigma_draws) <- c(3, 3, n_draws)
-  if (any(sapply(toList(Sigma_draws), det) < 0)) {
-    stop("Error: non-positive definite covariance matrix drawn")
-  }
+  not_positive_definite <- (apply(Sigma_draws, 3, det) < 0)
   rownames(Sigma_draws) <- colnames(Sigma_draws) <- c("Tobs", "y", "z")
-  return(Sigma_draws)
+  return(list(Sigma_draws = Sigma_draws,
+              not_positive_definite = not_positive_definite))
 }
 
 draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
@@ -50,8 +49,12 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
 
   if (Jeffreys) {
     Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, n_draws)
+    not_positive_definite <- rep(FALSE, n_draws)
   } else {
-    draw_sigma_CLT(y, Tobs, z, n_draws)
+    temp <- draw_sigma_CLT(y, Tobs, z, n_draws)
+    Sigma_draws <- temp$Sigma_draws
+    not_positive_definite <- temp$not_positive_definite
+    rm(temp)
   }
 
   s2_T <- Sigma_draws["Tobs", "Tobs", ]
@@ -78,7 +81,8 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
             s_zy = s_zy,
             r_Ty = r_Ty,
             r_Tz = r_Tz,
-            r_zy = r_zy)
+            r_zy = r_zy,
+            not_positive_definite = not_positive_definite)
 }
 
 draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
@@ -102,10 +106,10 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
       k_min <- with(obs_draws, (min(k_restriction) - T_Rsq) / (1 - T_Rsq))
       k_max <- with(obs_draws, (max(k_restriction) - T_Rsq) / (1 - T_Rsq))
       k_min <- pmax(k_tilde_lower, k_min) # vector: could vary with obs_draws row
-      k_max <- pmin(1, k_max) # always a scalar
+      k_max <- pmin(1, k_max)
     } else {
       k_min <- k_tilde_lower # vector: varies with obs_draws row
-      k_max <- rep(1, n_draws) # always a scalar
+      k_max <- rep(1, n_draws)
     }
 
     # We ensure above that but the user may have specified a k_max that is less
@@ -114,15 +118,19 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
     empty <- k_max < k_tilde_lower
 
     # Only compute the bounds for the non-empty identified sets
-    beta_lower <- get_beta_lower(r_TstarU_max[!empty], k_min[!empty],
-                                 k_max[!empty], obs_draws[!empty, ])
-    beta_upper <- get_beta_upper(r_TstarU_min[!empty], k_min[!empty],
-                                 k_max[!empty], obs_draws[!empty, ])
-    r_uz_restricted <- get_r_uz_bounds(r_TstarU_min[!empty],
-                                       r_TstarU_max[!empty],
-                                       k_min[!empty],
-                                       k_max[!empty],
-                                       obs_draws[!empty, ])
+    beta_lower <- rep(NA, n_draws)
+    beta_lower[which(!empty)] <- get_beta_lower(r_TstarU_max[!empty], k_min[!empty],
+                                                k_max[!empty], obs_draws[!empty, ])
+    beta_upper <- rep(NA, n_draws)
+    beta_upper[which(!empty)] <- get_beta_upper(r_TstarU_min[!empty], k_min[!empty],
+                                                k_max[!empty], obs_draws[!empty, ])
+    r_uz_restricted <- data.frame(min = rep(NA, n_draws),
+                                  max = rep(NA, n_draws))
+    r_uz_restricted[which(!empty), ] <- get_r_uz_bounds(r_TstarU_min[!empty],
+                                                        r_TstarU_max[!empty],
+                                                        k_min[!empty],
+                                                        k_max[!empty],
+                                                        obs_draws[!empty, ])
     restricted <- data.frame(beta_lower = beta_lower,
                              beta_upper = beta_upper,
                              r_uz_lower = r_uz_restricted$min,
@@ -139,7 +147,8 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
        unrestricted = unrestricted,
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
-       restricted = restricted)
+       restricted = restricted,
+       not_positive_definite = obs_draws$not_positive_definite)
 }
 
 
@@ -160,7 +169,7 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
 
   # The identified set is empty whenever (k_max < k_tilde_lower) in which case
   # we don't make any posterior draws
-  empty <- k_max < k_tilde_lower
+  empty <- (k_max < k_tilde_lower)
   nonempty_sets <- which(!empty)
   posterior_draws <- array(NA_real_, dim = c(n_IS_draws, 5, sum(!empty)))
 
@@ -179,13 +188,10 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
       k_tilde <- k_tilde[random_indices]
       r_TstarU <- r_TstarU[random_indices]
     }
-    r_uz_final <- s_u_final <- beta_final <- NULL
 
-    for (j in 1:n_IS_draws) {
-      r_uz_final[j] <- get_r_uz(r_TstarU[j], k_tilde[j], obs)
-      s_u_final[j] <- get_s_u(r_TstarU[j], k_tilde[j], obs)
-      beta_final[j] <- get_beta(r_TstarU[j], k_tilde[j], obs)
-    }
+    r_uz_final <- get_r_uz(r_TstarU, k_tilde, obs)
+    s_u_final <- get_s_u(r_TstarU, k_tilde, obs)
+    beta_final <- get_beta(r_TstarU, k_tilde, obs)
 
     posterior_draws[, , posterior_draws_index] <- cbind(
         r_TstarU,
@@ -201,5 +207,6 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
        empty = empty,
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
-       posterior = posterior_draws)
+       posterior = posterior_draws,
+       not_positive_definite = obs_draws$not_positive_definite)
 }

@@ -2,8 +2,9 @@
 #include <stdexcept>
 using namespace Rcpp;
 
-
 //' Simulate draws from the inverse Wishart distribution
+//'
+//' @useDynLib ivdoctr
 //'
 //' @param n An integer, the number of draws.
 //' @param v An integer, the degrees of freedom of the distribution.
