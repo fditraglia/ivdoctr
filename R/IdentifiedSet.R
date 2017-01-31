@@ -1,5 +1,7 @@
+#' @import stats
+#'
 # This function takes the data and function specification and returns the relevant
-# correlations and covariances. If there are exogenous controls, those are 
+# correlations and covariances. If there are exogenous controls, those are
 # projected out.
 get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
 
@@ -47,9 +49,10 @@ get_observables <- function(y_name, T_name, z_name, data, controls = NULL) {
        r_zy = r_zy)
 }
 
-# Once we have the relevant correlations and covariances (from get_observables), 
+# Once we have the relevant correlations and covariances (from get_observables),
 # we can get our unrestricted bounds for kappa. Depending on whether there are
 # exogenous covariantes, toggle "tilde" to be TRUE or FALSE.
+# This is VECTORIZED!
 get_k_bounds_unrest <- function(obs, tilde) {
   k_tilde <- with(obs, (r_Ty ^ 2 + r_Tz ^ 2 - 2 * r_Ty * r_Tz * r_zy) / (1 - r_zy ^ 2))
   lower_bound <- k_tilde * tilde + ((1 - obs$T_Rsq) * k_tilde + obs$T_Rsq) * (1 - tilde)
@@ -58,6 +61,7 @@ get_k_bounds_unrest <- function(obs, tilde) {
 }
 
 # We can get the bounds for rho_uz as well.
+# This is VECTORIZED.
 get_r_uz_bounds_unrest <- function(obs) {
   k_tilde_lower <- get_k_bounds_unrest(obs, tilde = TRUE)$Lower
   bound <- abs(obs$r_Tz) / sqrt(k_tilde_lower)
@@ -69,11 +73,13 @@ get_r_uz_bounds_unrest <- function(obs) {
 }
 
 # We can get rho_TstarU bounds as well (they don't really change)
+# This is VECTORIZED
 get_r_TstarU_bounds_unrest <- function(obs) {
-  return(list(Lower = -1, Upper = 1))
+  return(list(Lower = rep(-1, length(obs[[1]])), Upper = rep(1, length(obs[[1]]))))
 }
 
 # Wrapper function puts all the bounds together.
+# This is VECTORIZED
 get_bounds_unrest <- function(obs) {
   ans <- list(r_TstarU = get_r_TstarU_bounds_unrest(obs),
               r_uz = get_r_uz_bounds_unrest(obs),
@@ -83,39 +89,97 @@ get_bounds_unrest <- function(obs) {
 }
 
 # Solves for r_uz
+# Handles 3 potential cases when r_uz must be evaluated:
+# 1. Across multiple simulations, but given the same r_TstarU and k
+# 2. For multiple simulations, each with a value of r_TstarU and k
+# 3. For one simulation across a grid of r_TstarU and k
+
 get_r_uz <- function(r_TstarU, k, obs) {
-  A <- with(obs, r_TstarU * r_Tz / sqrt(k))
+  if ((length(r_TstarU) == 1 & length(k) == 1) |
+      (length(r_TstarU) == length(obs$r_Ty) & length(r_TstarU == length(k))) |
+      (length(obs$r_Ty) == 1 & length(r_TstarU) == length(k))) {
+    if (length(r_TstarU) == 1 & length(k) == 1) {
+      k <- rep(k, length(obs$r_Ty))
+      r_TstarU <- rep(r_TstarU, length(obs$r_Ty))
+    }
+    A <- with(obs, r_TstarU * r_Tz / sqrt(k))
+    B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
+    B2 <- with(obs, sqrt((1 - r_TstarU ^ 2) / (k * (k - r_Ty ^ 2))))
+    A - B1 * B2
+  } else {
+    stop("Function is only designed to evaluate r_uz across multiple simulations
+         for the same r_TstarU and k, across multiple simulations each with
+         a different r_TstarU and k, or for the same simulation across a grid
+         of r_TstarU and k values. Please fix your input r_TstarU and k to
+         either only take 1 value or match the number of simulations run.")
+  }
+}
+
+# Solves for the magnification factor
+get_M <- function(r_TstarU, k, obs) {
+  if ((length(r_TstarU) == 1 & length(k) == 1) |
+      (length(r_TstarU) == length(obs$r_Ty) & length(r_TstarU == length(k))) |
+      (length(obs$r_Ty) == 1 & length(r_TstarU) == length(k))) {
+    if (length(r_TstarU) == 1 & length(k) == 1) {
+      k <- rep(k, length(obs$r_Ty))
+      r_TstarU <- rep(r_TstarU, length(obs$r_Ty))
+    }
   B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
   B2 <- with(obs, sqrt((1 - r_TstarU ^ 2) / (k * (k - r_Ty ^ 2))))
-  A - B1 * B2
-}
-
-
-
-
-
-get_M <- function(r_TstarU, k, obs) {
-  A <- with(obs, r_TstarU * r_Tz / sqrt(k))
-  B1 <- with(obs, r_Ty * r_Tz - k * r_zy)
-  B2 <- with(obs, sqrt((1 - r_TstarU^2) / (k * (k - r_Ty^2))))
   dr_TstarU <- with(obs, r_Tz / sqrt(k) + r_TstarU * B1 /
-                    sqrt(k * (k - r_Ty^2) * (1 - r_TstarU^2)))
-  dk <- with(obs, -r_TstarU * r_Tz / (2 * k^(3 / 2)) + B2 *
-                  (r_zy + B1 / 2.0 * (1 / k + 1/(k - r_Ty^2))))
-  sqrt(1 + dr_TstarU^2 + dk^2)
+                    sqrt(k * (k - r_Ty ^ 2) * (1 - r_TstarU ^ 2)))
+  dk <- with(obs, -r_TstarU * r_Tz / (2 * k ^ (3 / 2)) + B2 *
+                  (r_zy + B1 / 2.0 * (1 / k + 1/(k - r_Ty ^ 2))))
+  sqrt(1 + dr_TstarU ^ 2 + dk ^ 2)
+  } else {
+    stop("Function is only designed to evaluate r_uz across multiple simulations
+         for the same r_TstarU and k, across multiple simulations each with
+         a different r_TstarU and k, or for the same simulation across a grid
+         of r_TstarU and k values. Please fix your input r_TstarU and k to
+         either only take 1 value or match the number of simulations run.")
+  }
 }
 
+# Solves for the variance of the error term u
 get_s_u <- function(r_TstarU, k, obs) {
-  with(obs, sqrt(s2_y * (k - r_Ty^2) / (k * (1 - r_TstarU^2))))
+  if ((length(r_TstarU) == 1 & length(k) == 1) |
+      (length(r_TstarU) == length(obs$r_Ty) & length(r_TstarU == length(k))) |
+      (length(obs$r_Ty) == 1 & length(r_TstarU) == length(k))) {
+    if (length(r_TstarU) == 1 & length(k) == 1) {
+      k <- rep(k, length(obs$r_Ty))
+      r_TstarU <- rep(r_TstarU, length(obs$r_Ty))
+    }
+    with(obs, sqrt(s2_y * (k - r_Ty ^ 2) / (k * (1 - r_TstarU ^ 2))))
+  } else {
+    stop("Function is only designed to evaluate r_uz across multiple simulations
+         for the same r_TstarU and k, across multiple simulations each with
+         a different r_TstarU and k, or for the same simulation across a grid
+         of r_TstarU and k values. Please fix your input r_TstarU and k to
+         either only take 1 value or match the number of simulations run.")
+  }
 }
 
 get_beta <- function(r_TstarU, k, obs) {
-  r_uz <- get_r_uz(r_TstarU, k, obs)
-  s_u <- get_s_u(r_TstarU, k, obs)
-  with(obs, (r_zy * sqrt(s2_y) - r_uz * s_u) / (r_Tz * sqrt(s2_T)))
+  if ((length(r_TstarU) == 1 & length(k) == 1) |
+      (length(r_TstarU) == length(obs$r_Ty) & length(r_TstarU == length(k))) |
+      (length(obs$r_Ty) == 1 & length(r_TstarU) == length(k))) {
+    if (length(r_TstarU) == 1 & length(k) == 1) {
+      k <- rep(k, length(obs$r_Ty))
+      r_TstarU <- rep(r_TstarU, length(obs$r_Ty))
+    }
+    r_uz <- get_r_uz(r_TstarU, k, obs)
+    s_u <- get_s_u(r_TstarU, k, obs)
+    with(obs, (r_zy * sqrt(s2_y) - r_uz * s_u) / (r_Tz * sqrt(s2_T)))
+  } else {
+    stop("Function is only designed to evaluate r_uz across multiple simulations
+         for the same r_TstarU and k, across multiple simulations each with
+         a different r_TstarU and k, or for the same simulation across a grid
+         of r_TstarU and k values. Please fix your input r_TstarU and k to
+         either only take 1 value or match the number of simulations run.")
+  }
 }
 
-# This function is vectorized wrt k_min and and obs (k_max is always a scalar).
+# This function is vectorized wrt k_min, k_max and obs.
 get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
   # min(beta) occurs at max(r_TstarU) but could be a corner value for kappa
   beta_corner <- pmin(get_beta(r_TstarU_max, k_min, obs),
@@ -125,8 +189,8 @@ get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
   if (identical(r_TstarU_max, 0)) {
     out <- beta_corner
   } else {
-    C <- 1 / sqrt(1 + (r_TstarU_max^2 / (1 - r_TstarU_max^2)))
-    k_interior <- with(obs, 2 * r_Ty^2 / (1 - sign(r_TstarU_max * r_Ty) * C))
+    C <- 1 / sqrt(1 + (r_TstarU_max ^ 2 / (1 - r_TstarU_max ^ 2)))
+    k_interior <- with(obs, 2 * r_Ty ^ 2 / (1 - sign(r_TstarU_max * r_Ty) * C))
 
     # It only makes sense to calculate beta_interior if k_interior is between
     # k_min and k_max. If not, set it to Inf so it always exceeds beta_corner.
@@ -138,18 +202,18 @@ get_beta_lower <- function(r_TstarU_max, k_min, k_max, obs) {
   return(out)
 }
 
-# This function is vectorized wrt k_min and and obs (k_max is always a scalar).
+# This function is vectorized wrt k_min, k_max, and obs.
 get_beta_upper <- function(r_TstarU_min, k_min, k_max, obs) {
   # max(beta) occurs at min(r_TstarU) but could be a corner value for kappa
   beta_corner <- pmax(get_beta(r_TstarU_min, k_min, obs),
                       get_beta(r_TstarU_min, k_max, obs))
 
   # If r_TstarU_min = 0, no need to check interior solution
-  if(identical(r_TstarU_min, 0)) {
+  if (identical(r_TstarU_min, 0)) {
     out <- beta_corner
   } else {
-    C <- 1 / sqrt(1 + (r_TstarU_min^2 / (1 - r_TstarU_min^2)))
-    k_interior <- with(obs, 2 * r_Ty^2 / (1 + sign(r_TstarU_min * r_Ty) * C))
+    C <- 1 / sqrt(1 + (r_TstarU_min ^ 2 / (1 - r_TstarU_min ^ 2)))
+    k_interior <- with(obs, 2 * r_Ty ^ 2 / (1 + sign(r_TstarU_min * r_Ty) * C))
 
     # It only makes sense to calculate beta_interior if k_interior is between
     # k_min and k_max. If not, set it to -Inf so it never exceeds beta_corner.

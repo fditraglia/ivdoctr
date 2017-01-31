@@ -3,6 +3,8 @@
 
 #' Simulate draws from the inverse Wishart distribution
 #'
+#' @useDynLib ivdoctr
+#'
 #' @param n An integer, the number of draws.
 #' @param v An integer, the degrees of freedom of the distribution.
 #' @param S A numeric matrix, the scale matrix of the distribution.
@@ -14,5 +16,6 @@
 #' M <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
 #' rinvwish(5, 10, M)
 rinvwish <- function(n, v, S) {
-    .Call("ivdoctr_rinvwish", PACKAGE = "ivdoctr", n, v, S)
+    .Call('ivdoctr_rinvwish', PACKAGE = 'ivdoctr', n, v, S)
 }
+

@@ -7,7 +7,7 @@ test_that("quadratic solvers",{
   expected_answer1 <- data.frame(x1 = c(-1, 0, NA, 2), x2 = c(1, 0, NA, 2))
   ans1 <- solve_quadratic_real(a, b, c)
   expect_equal(expected_answer1, ans1)
-  
+
   expected_answer2 <- data.frame(root1 = -1i/sqrt(2), root2 = 1i/sqrt(2), real = FALSE)
   ans2 <- solve_quadratic(2, 0, 1)
   expect_equal(expected_answer2, ans2)
@@ -17,18 +17,6 @@ test_that("cubic solvers", {
   expect_equal(solve_cubic(1, 0, 0, 0),
                data.frame(root1 = 0, root2 = 0 + 0i, root3 = 0 + 0i,
                           three_real = TRUE))
-})
-
-test_that("vech and devech", {
-  M <- matrix(c(11, 12, 13, 14,
-                12, 22, 23, 24,
-                13, 23, 33, 34,
-                14, 24, 34, 44), 4, 4, byrow = TRUE)
-  v <- drop(vech(M))
-  expect_equal(v, c(11:14, 22:24, 33:34, 44))
-  expect_that(vech(matrix(1:6, 3, 2)), throws_error())
-  expect_equal(devech(v, 4), M)
-  expect_that(devech(v, 3), throws_error())
 })
 
 test_that("toList", {
@@ -90,4 +78,49 @@ test_that("rectangle points are generated properly", {
                    y = c(0, 0, 0, 0.5, 1, 1, 1, 0.5, 0))
   ans <- rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
   expect_equal(expected, ans)
+})
+
+test_that("get_p_valid correctly computes share of potentially valid instruments
+          when bounds cover 0", {
+  draws <- list(empty = c(1, 0, 0, 0),
+                restricted = list(r_uz_lower = c(-1, -1, -1, -1),
+                                  r_uz_upper = c(1, 1, 1, 1)))
+  ans <- get_p_valid(draws)
+  expected <- 0.75
+})
+
+test_that("get_p_valid correctly computes share of potentially valid instruments
+          when some bounds cover zero", {
+  draws <- list(empty = c(1, 0, 0, 0),
+                restricted = list(r_uz_lower = c(-1, 0.5, -1, -1),
+                                  r_uz_upper = c(1, 1, 1, 1)))
+  ans <- get_p_valid(draws)
+  expected <- 0.5
+})
+
+test_that("get_p_valid correctly computes share of potentially valid instruments
+          when bounds cover 0, but all identified sets are empty", {
+  draws <- list(empty = c(1, 1, 1, 1),
+                restricted = list(r_uz_lower = c(-1, -1, -1, -1),
+                                  r_uz_upper = c(1, 1, 1, 1)))
+  ans <- get_p_valid(draws)
+  expected <- 0
+})
+
+test_that("get_p_valid correctly computes share of potentially valid instruments
+          when no bounds cover 0", {
+  draws <- list(empty = c(0, 0, 0, 0),
+                restricted = list(r_uz_lower = c(0.5, 0.5, 0.5, 0.5),
+                                  r_uz_upper = c(1, 1, 1, 1)))
+  ans <- get_p_valid(draws)
+  expected <- 0
+})
+
+test_that("get_p_valid correctly computes share of potentially valid instruments
+          when no bounds cover 0", {
+  draws <- list(empty = c(0, 0, 0, 0),
+                restricted = list(r_uz_lower = c(-1, 0.5, 0.5, -1),
+                                  r_uz_upper = c(1, 1, 1, 1)))
+  ans <- get_p_valid(draws)
+  expected <- 0.5
 })

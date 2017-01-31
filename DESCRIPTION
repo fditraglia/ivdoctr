@@ -1,23 +1,26 @@
 Package: ivdoctr
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Ensures Mutually Consistent Beliefs When Using Instrumental Variables
 Version: 0.1
-Date: 2015-06-02
-Author: Who wrote it
+Date: 2017-01-14
+Author: Frank DiTraglia, Camilo Garcia-Jimeno, E. Mallick Hossain, Alejandro Sanchez Becerra
 Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Description: Uses data and researcher's beliefs on measurement error and
+    instrument endogeneity to generate the space of consistent beliefs across
+    measurement error, instrument endogeneity, and instrumental relevance.
+License: CC0
 LazyData: TRUE
 Imports:
     Rcpp (>= 0.11.6),
+    stats,
     MASS,
     coda,
     sandwich,
-    AER
+    AER,
+    MCMCpack
 LinkingTo: Rcpp,
     RcppArmadillo
 Suggests:
     testthat,
-    MCMCpack,
     foreign
 RoxygenNote: 5.0.1

@@ -31,17 +31,16 @@
    \item{lnkmb}{Natural logarithm of distance to Berlin (km)}
    \item{poland}{Dummy variable, =1 if county is Polish-speaking}
    \item{latlon}{Latitude * Longitude * 100}
-   \item{f_over_3km}{Percent of pupils farther than 3km from school}
+   \item{f_over3km}{Percent of pupils farther than 3km from school}
    \item{f_mine}{Percent of labor force employed in mining}
    \item{inctaxpc}{Income tax revenue per capita in 1877}
    \item{perc_secB}{Percentage of labor force employed in manufacturing in 1882}
    \item{perc_secC}{Percentage of labor force employed in services in 1882}
-   \item{perc_secCnB}{Percentage of labor force employed in manufacturing and
+   \item{perc_secBnC}{Percentage of labor force employed in manufacturing and
    services in 1882}
    \item{lnyteacher}{100 * Natural logarithm of male elementary school
    teachers in 1886}
    \item{rhs}{Dummy variable, =1 if Imperial of Hanseatic city in 1517}
-   \item{yteacher}{Income of male elementary school teachers in 1886}
    \item{yteacher}{Income of male elementary school teachers in 1886}
    \item{pop}{Total population size}
    \item{kmb}{Distance to Berlin (km)}

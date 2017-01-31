@@ -1,3 +1,6 @@
+#' @importFrom grDevices colorRampPalette gray
+#' @importFrom graphics layout par persp plot polygon
+#'
 get_estimates <- function(y_name, T_name, z_name, data, controls = NULL,
                           robust = FALSE) {
   first_stage <- reformulate(c(z_name, controls), response = NULL)
@@ -26,7 +29,7 @@ get_estimates <- function(y_name, T_name, z_name, data, controls = NULL,
 get_HPDI <- function(draws, level = 0.9) {
   interval <- coda::HPDinterval(coda::as.mcmc(draws), level)
   lower <- interval[[1]]
-  upper<- interval[[2]]
+  upper <- interval[[2]]
   return(data.frame(lower = lower, median = median(draws), upper = upper))
 }
 
@@ -35,23 +38,27 @@ summarize_bounds <- function(draws) {
                        rbind(k_lower = get_HPDI(k_lower),
                              r_uz_lower = get_HPDI(r_uz_lower),
                              r_uz_upper = get_HPDI(r_uz_upper)))
-  # Add in restricted r_uz_lower and upper bounds later:
+
   restricted <- with(draws$restricted,
                      rbind(beta_lower = get_HPDI(beta_lower),
                            beta_upper = get_HPDI(beta_upper)))
+  p_valid <- get_p_valid(draws)
   list(unrestricted = unrestricted,
        r_TstarU_restriction = draws$r_TstarU_restriction,
        k_restriction = draws$k_restriction,
        p_empty = mean(draws$empty),
+       p_valid = p_valid,
        restricted = restricted)
 }
 
 summarize_posterior <- function(draws) {
   HPDI <- with(draws$posterior, rbind(r_uz = get_HPDI(r_uz),
                                       beta = get_HPDI(beta)))
+  p_valid <- get_p_valid(draws)
   list(r_TstarU_restriction = draws$r_TstarU_restriction,
        k_restriction = draws$k_restriction,
        p_empty = mean(draws$empty),
+       p_valid = p_valid,
        HPDI = HPDI)
 }
 
@@ -69,7 +76,7 @@ plot_3d_beta <- function(obs, r_TstarU_range, k_range = NULL, n_grid = 30,
   k_lower <- get_bounds_unrest(obs)$k$Lower
   k_upper <- 1
 
-  if(!is.null(k_range)) {
+  if (!is.null(k_range)) {
     stopifnot(identical(length(k_range), 2L))
     stopifnot(all(is.numeric(k_range)))
     k_lower <- max(k_lower, min(k_range))
@@ -115,15 +122,15 @@ plot_3d_beta <- function(obs, r_TstarU_range, k_range = NULL, n_grid = 30,
        ylab = '$\\beta$', xlim = c(0,1), xaxt = 'n', yaxt = 's', xlab = '',
        xaxs = 'i', yaxs = 'i')
 
-  for(i in seq_len(n_colors)) {
-      polygon(c(0,0,1,1), c(bins_lower[i], bins_upper[i], bins_upper[i],
-                            bins_lower[i]), col= all_colors[i], border=NA)
+  for (i in seq_len(n_colors)) {
+      polygon(c(0, 0, 1, 1), c(bins_lower[i], bins_upper[i], bins_upper[i],
+                            bins_lower[i]), col = all_colors[i], border = NA)
   }
   VT <- persp(r_TstarU, k, r_uz, ticktype = 'detailed', nticks = 4, phi = 30,
               theta = 225, xlab = '$\\rho_{T^*u}$', ylab = '$\\kappa$',
               zlab = '$\\rho_{zu}$', col = facet_colors, cex.axis = 0.75)
 
-  if(!is.null(fence)){
+  if (!is.null(fence)) {
 
     left <- r_TstarU[which.min(abs(r_TstarU - fence[1]))]
     bottom <- k[which.min(abs(k - fence[2]))]
@@ -138,6 +145,6 @@ plot_3d_beta <- function(obs, r_TstarU_range, k_range = NULL, n_grid = 30,
     with(my_rect, points(x, y, type = 'l', lwd = 3))
 
   }
-  par(mfrow = c(1,1))
+  par(mfrow = c(1, 1))
 
 }
