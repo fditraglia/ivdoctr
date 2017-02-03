@@ -1,3 +1,7 @@
+#' @importFrom Rcpp evalCpp
+#' @useDynLib ivdoctr
+NULL
+
 #' Construct vectors of points that outline a rectangle.
 #'
 #' @param xleft The left side of the rectangle
@@ -51,6 +55,3 @@ get_p_valid <- function(draws) {
              draws$restricted$r_uz_upper >= 0) / length(draws$empty)
   return(ans)
 }
-
-#' @importFrom Rcpp evalCpp
-#' @useDynLib ivdoctr

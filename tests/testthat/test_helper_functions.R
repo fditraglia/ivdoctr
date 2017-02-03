@@ -105,3 +105,5 @@ test_that("get_p_valid correctly computes share of potentially valid instruments
   ans <- get_p_valid(draws)
   expected <- 0.5
 })
+
+
