@@ -2,9 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' Simulate draws from the inverse Wishart distribution
-#'
-#' @useDynLib ivdoctr
-#'
 #' @param n An integer, the number of draws.
 #' @param v An integer, the degrees of freedom of the distribution.
 #' @param S A numeric matrix, the scale matrix of the distribution.
@@ -12,9 +9,7 @@
 #' @details Employs the Bartlett Decomposition (Smith & Hocking 1972).
 #' Output exactly matches that of riwish from the MCMCpack package if the same
 #' random seed is used.
-#' @examples
-#' M <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
-#' rinvwish(5, 10, M)
+#' @export
 rinvwish <- function(n, v, S) {
     .Call('ivdoctr_rinvwish', PACKAGE = 'ivdoctr', n, v, S)
 }

@@ -20,9 +20,9 @@ rect_points(xleft, ybottom, xright, ytop, step_x, step_y)
 \item{step_y}{The step size of the y coordinates}
 }
 \value{
-List of x coordinates and y coordinates
+List of x-coordinates and y-coordinates tracing the points around
+  the rectangle
 }
 \description{
 Construct vectors of points that outline a rectangle.
 }
-

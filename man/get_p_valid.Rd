@@ -10,9 +10,9 @@ get_p_valid(draws)
 \item{draws}{List of simulated draws}
 }
 \value{
-Numeric of the share of valid draws
+Numeric of the share of valid draws as determined by having the
+  the restricted bounds for r_uz contain zero.
 }
 \description{
 Compute the share of draws that could contain a valid instrument.
 }
-

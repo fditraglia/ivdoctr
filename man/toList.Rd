@@ -19,4 +19,3 @@ Convert 3-d array to list of matrixes
 M <- array(c(1, 1, 1, 1, 2, 2, 2, 2), c(2, 2, 2))
 toList(M)
 }
-

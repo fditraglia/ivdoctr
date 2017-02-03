@@ -1,3 +1,20 @@
+#' Draws covariance matrix using the CLT
+#'
+#' This function takes the data and assumes that the covariance between the
+#'   dependent variable and the preferred regressor (Tobs and y) and the
+#'   covariance between the instrument and the dependent variable is normal.
+#'   However, only drawing these parameters does not guarantee that the
+#'   full covariance matrix will be positive definite. However, this does
+#'   avoid the necessity of imposing a prior and redrawing the whole covariance
+#'   matrix using Bayesian methods.
+#'
+#' @param y Vector of dependent variable data
+#' @param Tobs Matrix containing data for the endogenous regressor
+#' @param z Matrix containing data for the instrumental variable
+#' @param n_draws Integer number of draws to generate
+#'
+#' @return List of covariance matrix draws (Sigma) and an indicator of whether
+#'   each one is positive definite
 draw_sigma_CLT <- function(y, Tobs, z, n_draws) {
   n <- length(y)
   e_T <- resid(lm(y ~ Tobs))
@@ -19,6 +36,14 @@ draw_sigma_CLT <- function(y, Tobs, z, n_draws) {
               not_positive_definite = not_positive_definite))
 }
 
+#' Draws covariance matrix using the Jeffrey's Prior
+#'
+#' @param y Vector of dependent variable
+#' @param Tobs Matrix containing data for the preferred regressor
+#' @param z Matrix containing data for the instrumental variable
+#' @param n_draws Integer number of draws to perform
+#'
+#' @return Array of covariance matrix draws
 draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
   n <- length(y)
   S <- (n - 1) * cov(cbind(Tobs, y, z))
@@ -27,6 +52,22 @@ draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
   return(Sigma_draws)
 }
 
+#' Simulates different data draws
+#'
+#' This function takes the data and simulates potential draws of data from
+#'   the properties of the observed data.
+#'
+#' @param y_name Character vector of the name of the dependent variable
+#' @param T_name Character vector of the names of the preferred regressors
+#' @param z_name Character vector of the names of the instrumental variables
+#' @param data Data to be analyzed
+#' @param controls Character vector containing the names of the exogenous regressors
+#' @param n_draws Integer number of simulations to draw
+#' @param Jeffreys Boolean indicator of whether to impose the Jeffreys prior to
+#'   ensure positive definiteness of the covariance matrix (Bayesian) or to
+#'   use the central limit theorem (frequentist-friendly)
+#' @return Data frame containing covariances, correlations, and R-squares for
+#'   each data simulation
 draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
                              n_draws = 5000, Jeffreys = FALSE) {
 
@@ -71,20 +112,41 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
   r_zy <- s_zy / (s_z * s_y)
 
   data.frame(n = rep(nrow(data), n_draws),
-            T_Rsq = rep(T_Rsq, n_draws),
-            z_Rsq = rep(z_Rsq, n_draws),
-            s2_T = s2_T,
-            s2_y = s2_y,
-            s2_z = s2_z,
-            s_Ty = s_Ty,
-            s_Tz = s_Tz,
-            s_zy = s_zy,
-            r_Ty = r_Ty,
-            r_Tz = r_Tz,
-            r_zy = r_zy,
-            not_positive_definite = not_positive_definite)
+             T_Rsq = rep(T_Rsq, n_draws),
+             z_Rsq = rep(z_Rsq, n_draws),
+             s2_T = s2_T,
+             s2_y = s2_y,
+             s2_z = s2_z,
+             s_Ty = s_Ty,
+             s_Tz = s_Tz,
+             s_zy = s_zy,
+             r_Ty = r_Ty,
+             r_Tz = r_Tz,
+             r_zy = r_zy,
+             not_positive_definite = not_positive_definite)
 }
 
+#' Computes bounds for simulated data
+#'
+#' This function takes data and user restrictions on measurement error and
+#'   endogeneity and simulates data and the resulting bounds on instrument
+#'   validity.
+#' @param y_name Character vector of the name of the dependent variable
+#' @param T_name Character vector of the names of the preferred regressors
+#' @param z_name Character vector of the names of the instrumental variables
+#' @param data Data to be analyzed
+#' @param controls Character vector containing the names of the exogenous regressors
+#' @param r_TstarU_restriction 2 element vector containing the min and max
+#'   imposed on r_TstarU
+#' @param k_restriction 2-element vector containing the min and max imposed on kappa
+#' @param n_draws Integer number of simulations to draw
+#' @param Jeffreys Boolean indicator of whether to impose the Jeffreys prior to
+#'   ensure positive definiteness of the covariance matrix (Bayesian) or to
+#'   use the central limit theorem (frequentist-friendly)
+#' @return List containing simulated data observables (covariances,
+#'   correlations, and R-squares), indications of whether the identified set
+#'   is empty, the unrestricted and restricted bounds on instrumental relevance,
+#'   instrumental validity, and measurement error.
 draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                         r_TstarU_restriction = NULL, k_restriction = NULL,
                         n_draws = 5000, Jeffreys = FALSE) {
@@ -150,7 +212,6 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
        restricted = restricted,
        not_positive_definite = obs_draws$not_positive_definite)
 }
-
 
 draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
                            r_TstarU_restriction, k_restriction = NULL,

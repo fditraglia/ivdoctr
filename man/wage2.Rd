@@ -40,4 +40,3 @@ The subset contains only observations from 1980.
 \url{http://qje.oxfordjournals.org/content/107/4/1421.full.pdf+html}
 }
 \keyword{datasets}
-

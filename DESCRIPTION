@@ -1,15 +1,17 @@
 Package: ivdoctr
-Type: Package
 Title: Ensures Mutually Consistent Beliefs When Using Instrumental Variables
 Version: 0.1
-Date: 2017-01-14
-Author: Frank DiTraglia, Camilo Garcia-Jimeno, E. Mallick Hossain, Alejandro Sanchez Becerra
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Authors@R: c(
+    person("Frank", "DiTraglia", email = "fditra@sas.upenn.edu", role = "aut"),
+    person("Camilo", "Garc\'ia-Jimeno", email = "gcamilo@sas.upenn.edu", role = "aut"),
+    person("Mallick", "Hossain", email = "hossaine@sas.upenn.edu", role = c("aut", "cre")), 
+    person("Alejandro", "Sanchez Becerra", email = "alesan@sas.upenn.edu", role = "aut"))
 Description: Uses data and researcher's beliefs on measurement error and
     instrument endogeneity to generate the space of consistent beliefs across
     measurement error, instrument endogeneity, and instrumental relevance.
 License: CC0
 LazyData: TRUE
+Depends: R (>= 2.10)
 Imports:
     Rcpp (>= 0.11.6),
     stats,
@@ -17,10 +19,12 @@ Imports:
     coda,
     sandwich,
     AER,
-    MCMCpack
+    MCMCpack,
+    data.table,
+    utils,
+    foreign
 LinkingTo: Rcpp,
     RcppArmadillo
 Suggests:
-    testthat,
-    foreign
-RoxygenNote: 5.0.1
+    testthat
+RoxygenNote: 6.0.0

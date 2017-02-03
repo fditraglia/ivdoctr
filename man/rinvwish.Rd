@@ -24,8 +24,3 @@ Employs the Bartlett Decomposition (Smith & Hocking 1972).
 Output exactly matches that of riwish from the MCMCpack package if the same
 random seed is used.
 }
-\examples{
-M <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
-rinvwish(5, 10, M)
-}
-

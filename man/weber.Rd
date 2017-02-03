@@ -67,4 +67,3 @@ Data on Prussian counties in 1871 from Becker & Woessmann's (2009) paper "Was We
 \url{http://qje.oxfordjournals.org/content/124/2/531.short}
 }
 \keyword{datasets}
-
