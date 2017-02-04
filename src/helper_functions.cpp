@@ -3,9 +3,6 @@
 using namespace Rcpp;
 
 //' Simulate draws from the inverse Wishart distribution
-//'
-//' @useDynLib ivdoctr
-//'
 //' @param n An integer, the number of draws.
 //' @param v An integer, the degrees of freedom of the distribution.
 //' @param S A numeric matrix, the scale matrix of the distribution.
@@ -13,9 +10,7 @@ using namespace Rcpp;
 //' @details Employs the Bartlett Decomposition (Smith & Hocking 1972).
 //' Output exactly matches that of riwish from the MCMCpack package if the same
 //' random seed is used.
-//' @examples
-//' M <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
-//' rinvwish(5, 10, M)
+//' @export
 // [[Rcpp::export]]
 arma::cube rinvwish(int n, int v, arma::mat S){
   RNGScope scope;

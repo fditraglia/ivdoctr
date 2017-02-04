@@ -41,4 +41,3 @@ makeExample(y_name, T_name, z_name, data, controls = NULL, robust = FALSE,
 \description{
 Generates table of parameter estimates given user restrictions and data
 }
-

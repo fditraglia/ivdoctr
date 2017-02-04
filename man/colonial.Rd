@@ -33,4 +33,3 @@ Cross-country dataset used to construct Table 4 of Acemoglu, Johnson & Robinson 
 \url{https://www.aeaweb.org/articles.php?doi=10.1257/aer.91.5.1369}
 }
 \keyword{datasets}
-

@@ -10,9 +10,8 @@ collapse_3d_array(myarray)
 \item{myarray}{A three-dimensional array.}
 }
 \value{
-Matrix
+Matrix with the 3rd dimension appended as rows to the matrix
 }
 \description{
 Collapse 3-d array to matrix
 }
-

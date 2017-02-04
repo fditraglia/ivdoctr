@@ -1,24 +1,36 @@
-# #### This file contains three functions:
-# 1. make_I(): Initial tex line for each example
-# 2. make_II_III(): Line for each prior with each example
-# 3. makeExample(): Carries out numerical calculations and uses the above
-#    functions as building blocks to generate whole section of table devoted
-#    to example
-
-# ------------------------ Generic Helper Functions
+#' Rounds x to two decimal places
+#' @param x Number to be rounded
+#' @return Number rounded to 2 decimal places
 myformat <- function(x){
   x <- ifelse(is.na(x), NA, format(round(x, 2), n_digits = 2, nsmall = 2))
 }
+
+#' Creates LaTeX code for parameter estimates
+#' @param est Number
+#' @return LaTeX string for the number
 format_est <- function(est) {
   paste0('$', myformat(est), '$')
 }
+
+#' Creates LaTeX code for the standard error
+#' @param se Standard error
+#' @return LaTeX string for the standard error
 format_se <- function(se) {
   paste0('$(', myformat(se), ')$')
 }
+
+#' Creates LaTeX code for the HPDI
+#' @param bounds 2-element vector of the upper and lower HPDI bounds
+#' @return LaTeX string of the HPDI
 format_HPDI <- function(bounds) {
   paste0('$[', myformat(bounds[1]), ',', myformat(bounds[2]), ']$')
 }
 
+#' Makes LaTeX code to make a row of a table and shift by some amount of columns
+#'   if necessary
+#' @param char_vec Vector of characters to be collapsed into a LaTeX table
+#' @param shift Number of columns to shift over
+#' @return LaTeX string of the whole row of the table
 make_tex_row <- function(char_vec, shift = 0) {
   out <- paste0(char_vec, collapse = ' & ')
   if (identical(shift, 0)) {
@@ -29,16 +41,25 @@ make_tex_row <- function(char_vec, shift = 0) {
   return(out)
 }
 
-# ------------------------ Functions Specific to Continuous Case
+#' Takes the OLS and IV estimates and converts it to a row of the LaTeX table
+#' @param stats List with OLS and IV estimates and the bounds on kappa and r_uz
+#' @param example_name Character string detailing the example
+#' @return LaTeX code for the reduced-form estimates part of the table
 make_I <- function(stats, example_name) {
   example_name <- paste(example_name, paste0('($n=', stats$n, '$)'))
   est <- with(stats, sapply(c(b_OLS, b_IV, k_lower, r_uz_bound), format_est))
   est <- make_tex_row(c(example_name, est))
   se <- with(stats, sapply(c(se_OLS, se_IV), format_se))
   se <- make_tex_row(se, shift = 1)
-  paste(est, se, sep = '\n')
+  paste(est, se, sep = '\\ ')
 }
 
+#' Takes frequentist or Bayesian simulations of beta and instrument validity
+#'   and formats it into a LaTeX table
+#' @param stats List containing parameter estimates and bounds to be output into table
+#' @param prior_name String containing information on the user beliefs over
+#'     endogeneity and measurement error
+#' @return LaTeX string outputting a row of a table for those user restrictions
 make_II_III <- function(stats, prior_name) {
     probs <- with(stats, sapply(c(p_empty, p_valid), format_est))
 
@@ -55,7 +76,7 @@ make_II_III <- function(stats, prior_name) {
 
   row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, medians), shift = 5))
   row2 <- make_tex_row(HPDIs, shift = 7)
-  paste(row1, row2, sep = '\n')
+  paste(row1, row2, sep = '\\ ')
 }
 
 #' Generates table of parameter estimates given user restrictions and data
@@ -138,13 +159,14 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
               r_uz_upper_bound = bayes$HPDI$upper[1],
               beta_bayes_upper_bound = bayes$HPDI$upper[2])
     newRow <- make_II_III(stats, paste0("$(\\kappa, \\rho_{T^*u}) \\in (",
-                                        k_restriction[i, 1], ",",
+                                        ifelse(k_restriction[i, 1] < 0.01,
+                                               0, k_restriction[i, 1]), ",",
                                         k_restriction[i, 2],
-                                        ") \\times [",
+                                        "] \\times [",
                                         r_TstarU_restriction[i, 1], ",",
-                                        r_TstarU_restriction[i, 2], "]"))
-    exampleTex <- paste(exampleTex, newRow, sep = "/n")
+                                        r_TstarU_restriction[i, 2], "]$"))
+    exampleTex <- paste(exampleTex, newRow, sep = "\\ ")
   }
-  output <- paste(headline, exampleTex, sep = "/n")
+  output <- paste(headline, exampleTex, sep = "\\ ")
   return(output)
 }
