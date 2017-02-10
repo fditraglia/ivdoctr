@@ -9,7 +9,6 @@
 #' @details Employs the Bartlett Decomposition (Smith & Hocking 1972).
 #' Output exactly matches that of riwish from the MCMCpack package if the same
 #' random seed is used.
-#' @export
 rinvwish <- function(n, v, S) {
     .Call('ivdoctr_rinvwish', PACKAGE = 'ivdoctr', n, v, S)
 }
