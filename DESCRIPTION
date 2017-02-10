@@ -1,6 +1,6 @@
 Package: ivdoctr
 Title: Ensures Mutually Consistent Beliefs When Using Instrumental Variables
-Version: 0.1
+Version: 0.9
 Authors@R: c(
     person("Frank", "DiTraglia", email = "fditra@sas.upenn.edu", role = "aut"),
     person("Camilo", "Garc\'ia-Jimeno", email = "gcamilo@sas.upenn.edu", role = "aut"),
@@ -20,11 +20,9 @@ Imports:
     sandwich,
     AER,
     MCMCpack,
-    data.table,
-    utils,
-    foreign
+    haven
 LinkingTo: Rcpp,
     RcppArmadillo
 Suggests:
     testthat
-RoxygenNote: 6.0.0
+RoxygenNote: 6.0.1
