@@ -1,6 +1,6 @@
 Package: ivdoctr
 Title: Ensures Mutually Consistent Beliefs When Using Instrumental Variables
-Version: 0.1
+Version: 0.9
 Authors@R: c(
     person("Frank", "DiTraglia", email = "fditra@sas.upenn.edu", role = "aut"),
     person("Camilo", "Garc\'ia-Jimeno", email = "gcamilo@sas.upenn.edu", role = "aut"),

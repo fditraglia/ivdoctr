@@ -1,3 +1,6 @@
+#' @importFrom MASS mvrnorm
+NULL
+
 #' Draws covariance matrix using the CLT
 #'
 #' This function takes the data and assumes that the covariance between the
