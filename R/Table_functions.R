@@ -61,18 +61,18 @@ make_I <- function(stats, example_name) {
 #'     endogeneity and measurement error
 #' @return LaTeX string outputting a row of a table for those user restrictions
 make_II_III <- function(stats, prior_name) {
-    probs <- with(stats, sapply(c(p_empty, p_valid), format_est))
+  probs <- with(stats, sapply(c(p_empty, p_valid), format_est))
 
-    medians <- with(stats, sapply(c(beta_lower_median,
-                                    beta_upper_median,
-                                    r_uz_median,
-                                    beta_bayes_median), format_est))
+  medians <- with(stats, sapply(c(beta_lower_median,
+                                  beta_upper_median,
+                                  r_uz_median,
+                                  beta_bayes_median), format_est))
 
-    HPDIs <- with(stats, apply(matrix(c(beta_lower_lower_bound, beta_lower_upper_bound,
-                                        beta_upper_lower_bound, beta_upper_upper_bound,
-                                        r_uz_lower_bound, r_uz_upper_bound,
-                                        beta_bayes_lower_bound, beta_bayes_upper_bound),
-                                      ncol = 2, byrow = TRUE), 1, format_HPDI))
+  HPDIs <- with(stats, apply(matrix(c(beta_lower_lower_bound, beta_lower_upper_bound,
+                                      beta_upper_lower_bound, beta_upper_upper_bound,
+                                      r_uz_lower_bound, r_uz_upper_bound,
+                                      beta_bayes_lower_bound, beta_bayes_upper_bound),
+                                    ncol = 2, byrow = TRUE), 1, format_HPDI))
 
   row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, medians), shift = 5))
   row2 <- make_tex_row(HPDIs, shift = 7)
@@ -114,11 +114,11 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
       k_restriction <- matrix(c(0, 1), nrow = nrow(r_TstarU_restriction), byrow = TRUE)
     } else {
       stop("Dimension mismatch between r_TstarU_restriction and k_restriction.
-            Please make sure that if there are restrictions on kappa or r_TstarU
-            that they are of the same dimension so that all examples are accounted
-            for.")
+           Please make sure that if there are restrictions on kappa or r_TstarU
+           that they are of the same dimension so that all examples are accounted
+           for.")
     }
-  }
+    }
   summary_stats <- get_estimates(y_name, T_name, z_name, data, controls, robust)
   obs <- get_observables(y_name, T_name, z_name, data, controls)
   bounds_unrest <- get_bounds_unrest(obs)
@@ -145,19 +145,19 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                                 n_RF_draws, n_IS_draws, Jeffreys, resample)
     bayes <- summarize_posterior(posterior)
     stats <- list(p_empty = freq$p_empty,
-              p_valid = freq$p_valid,
-              beta_lower_median = freq$restricted$median[1],
-              beta_upper_median = freq$restricted$median[2],
-              beta_lower_lower_bound = freq$restricted$lower[1],
-              beta_lower_upper_bound = freq$restricted$upper[1],
-              beta_upper_lower_bound = freq$restricted$lower[2],
-              beta_upper_upper_bound = freq$restricted$upper[2],
-              r_uz_median = bayes$HPDI$median[1],
-              beta_bayes_median = bayes$HPDI$median[2],
-              r_uz_lower_bound = bayes$HPDI$lower[1],
-              beta_bayes_lower_bound = bayes$HPDI$lower[2],
-              r_uz_upper_bound = bayes$HPDI$upper[1],
-              beta_bayes_upper_bound = bayes$HPDI$upper[2])
+                  p_valid = freq$p_valid,
+                  beta_lower_median = freq$restricted$median[1],
+                  beta_upper_median = freq$restricted$median[2],
+                  beta_lower_lower_bound = freq$restricted$lower[1],
+                  beta_lower_upper_bound = freq$restricted$upper[1],
+                  beta_upper_lower_bound = freq$restricted$lower[2],
+                  beta_upper_upper_bound = freq$restricted$upper[2],
+                  r_uz_median = bayes$HPDI$median[1],
+                  beta_bayes_median = bayes$HPDI$median[2],
+                  r_uz_lower_bound = bayes$HPDI$lower[1],
+                  beta_bayes_lower_bound = bayes$HPDI$lower[2],
+                  r_uz_upper_bound = bayes$HPDI$upper[1],
+                  beta_bayes_upper_bound = bayes$HPDI$upper[2])
     newRow <- make_II_III(stats, paste0("$(\\kappa, \\rho_{T^*u}) \\in (",
                                         ifelse(k_restriction[i, 1] < 0.01,
                                                0, k_restriction[i, 1]), ",",
@@ -169,4 +169,39 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   }
   output <- paste(headline, exampleTex, sep = "\\ ")
   return(output)
+    }
+
+table_header_fn <- function() {
+  "\\begin{tabular}{lcccccccccc}
+  \\hline
+  \\hline
+  &\\multicolumn{4}{c}{(I) Summary Statistics}
+  &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
+  &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
+  \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
+  & OLS & IV & $\\underline{\\kappa}$ & $\\underline{\\tilde{\\rho}}_{uz}/\\tilde{\\bar{\\rho}}_{uz}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\underline{\\beta}$ & $\\bar{\\beta}$ & $\\rho_{uz}$ & $\\beta$ \\\\
+  \\\\"
+}
+
+table_footer_fn <- function() {
+  "\\hline
+  \\end{tabular}"
+}
+
+makeTable <- function(file,...) {
+
+  table_examples <- c()
+  list_examples <- list(...)
+
+  for( i in 1:length(list(...))) {
+
+    table_examples <- c(table_examples,list_examples[[i]],"\\\\")
+
+  }
+
+  cat(table_header_fn(),'\\\\',
+      table_examples,
+      table_footer_fn(),
+      sep = '\n',file=file)
+
 }
