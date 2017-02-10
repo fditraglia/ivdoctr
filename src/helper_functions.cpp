@@ -10,7 +10,6 @@ using namespace Rcpp;
 //' @details Employs the Bartlett Decomposition (Smith & Hocking 1972).
 //' Output exactly matches that of riwish from the MCMCpack package if the same
 //' random seed is used.
-//' @export
 // [[Rcpp::export]]
 arma::cube rinvwish(int n, int v, arma::mat S){
   RNGScope scope;

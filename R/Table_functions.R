@@ -171,6 +171,8 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   return(output)
     }
 
+#' Generates header LaTeX code for continuous table
+#'
 table_header_fn <- function() {
   "\\begin{tabular}{lcccccccccc}
   \\hline
@@ -183,60 +185,28 @@ table_header_fn <- function() {
   \\\\"
 }
 
+#' Generates footer LaTeX code for continuous table
+#'
 table_footer_fn <- function() {
   "\\hline
   \\end{tabular}"
 }
 
-makeTable <- function(file,...) {
+#' Generates table of parameter estimates given user restrictions and data
+#'
+#' @param file Character string with the path name of the .tex file to be saved
+#' @param ... Arguments of TeX code for individual examples to be combined
+#'   into a single table
+#' @export
+makeTable <- function(file, ...) {
 
   table_examples <- c()
   list_examples <- list(...)
 
-  for( i in 1:length(list(...))) {
-
-    table_examples <- c(table_examples,list_examples[[i]],"\\\\")
-
+  for (i in 1:length(list(...))) {
+    table_examples <- c(table_examples, list_examples[[i]], "\\\\")
   }
 
-  cat(table_header_fn(),'\\\\',
-      table_examples,
-      table_footer_fn(),
-      sep = '\n',file=file)
-
-}
-
-table_header_fn <- function() {
-  "\\begin{tabular}{lcccccccccc}
-  \\hline
-  \\hline
-  &\\multicolumn{4}{c}{(I) Summary Statistics}
-  &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
-  &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
-  \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
-  & OLS & IV & $\\underline{\\kappa}$ & $\\underline{\\tilde{\\rho}}_{uz}/\\tilde{\\bar{\\rho}}_{uz}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\underline{\\beta}$ & $\\bar{\\beta}$ & $\\rho_{uz}$ & $\\beta$ \\\\
-  \\\\"
-}
-
-table_footer_fn <- function() {
-  "\\hline
-  \\end{tabular}"
-}
-
-makeTable <- function(file,...) {
-
-  table_examples <- c()
-  list_examples <- list(...)
-
-  for( i in 1:length(list(...))) {
-
-    table_examples <- c(table_examples,list_examples[[i]],"\\\\")
-
-  }
-
-  cat(table_header_fn(),'\\\\',
-      table_examples,
-      table_footer_fn(),
-      sep = '\n',file=file)
-
+  cat(table_header_fn(), '\\\\', table_examples, table_footer_fn(),
+      sep = '\n', file = file)
 }
