@@ -13,14 +13,14 @@ License: CC0
 LazyData: TRUE
 Depends: R (>= 2.10)
 Imports:
-    Rcpp (>= 0.11.6),
-    stats,
-    MASS,
-    coda,
-    sandwich,
     AER,
+    coda,
+    haven,
+    MASS,
     MCMCpack,
-    haven
+    Rcpp (>= 0.11.6),
+    sandwich,
+    stats
 LinkingTo: Rcpp,
     RcppArmadillo
 Suggests:
