@@ -2,9 +2,9 @@ Package: ivdoctr
 Title: Ensures Mutually Consistent Beliefs When Using Instrumental Variables
 Version: 0.9
 Authors@R: c(
-    person("Frank", "DiTraglia", email = "fditra@sas.upenn.edu", role = "aut"),
+    person("Frank", "DiTraglia", email = "fditra@sas.upenn.edu", role = c("aut", "cre")),
     person("Camilo", "Garc\'ia-Jimeno", email = "gcamilo@sas.upenn.edu", role = "aut"),
-    person("Mallick", "Hossain", email = "hossaine@sas.upenn.edu", role = c("aut", "cre")), 
+    person("Mallick", "Hossain", email = "hossaine@sas.upenn.edu", role = "aut"), 
     person("Alejandro", "Sanchez Becerra", email = "alesan@sas.upenn.edu", role = "aut"))
 Description: Uses data and researcher's beliefs on measurement error and
     instrument endogeneity to generate the space of consistent beliefs across
@@ -15,14 +15,17 @@ Depends: R (>= 2.10)
 Imports:
     AER,
     coda,
-    haven,
     MASS,
-    MCMCpack,
     Rcpp (>= 0.11.6),
     sandwich,
     stats
 LinkingTo: Rcpp,
     RcppArmadillo
 Suggests:
-    testthat
+    testthat,
+    data.table,
+    haven,
+    MCMCpack
 RoxygenNote: 6.0.1
+NeedsCompilation: yes
+BugReports: https://github.com/fditraglia/ivdoctr/issues

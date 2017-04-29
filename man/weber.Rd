@@ -3,7 +3,7 @@
 \docType{data}
 \name{weber}
 \alias{weber}
-\title{Becker & Woessmann (2009) Dataset}
+\title{Becker and Woessmann (2009) Dataset}
 \format{A data frame with 452 rows and 44 variables:
 \describe{
    \item{kreiskey1871}{kreiskey1871}
@@ -60,7 +60,7 @@
 weber
 }
 \description{
-Data on Prussian counties in 1871 from Becker & Woessmann's (2009) paper "Was Weber Wrong? A Human Capital Theory of Protestant Economic History."
+Data on Prussian counties in 1871 from Becker and Woessmann's (2009) paper "Was Weber Wrong? A Human Capital Theory of Protestant Economic History."
 }
 \references{
 \url{https://www.cesifo-group.de/ifoHome/facts/iPEHD-Ifo-Prussian-Economic-History-Database.html}

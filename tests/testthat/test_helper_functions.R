@@ -9,6 +9,7 @@ test_that("toList", {
 })
 
 test_that("rinvwish agrees with riwish from MCMCpack", {
+  skip_if_not_installed('MCMCpack')
   V <- matrix(c(1, 0.5, 0.5, 1), 2, 2)
   set.seed(4321)
   riwish_draw1 <- MCMCpack::riwish(10, 10 * V)

@@ -1,3 +1,4 @@
+#' @import stats
 #' @importFrom MASS mvrnorm
 NULL
 

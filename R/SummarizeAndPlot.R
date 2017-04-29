@@ -1,8 +1,8 @@
-#' @importFrom grDevices colorRampPalette gray
-#' @importFrom graphics layout par persp plot polygon
 #' @importFrom AER ivreg
-#' @importFrom sandwich vcovHC
 #' @importFrom coda HPDinterval as.mcmc
+#' @importFrom sandwich vcovHC
+#' @import grDevices
+#' @import graphics
 NULL
 
 #' Computes OLS and IV estimates
