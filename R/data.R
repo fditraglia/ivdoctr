@@ -1,8 +1,4 @@
-#' @importFrom haven read_dta
-#' @importFrom utils read.table
-NULL
-
-#' Acemoglu, Johnson & Robinson (2001) Dataset
+#' Acemoglu, Johnson, and Robinson (2001) Dataset
 #'
 #' @description Cross-country dataset used to construct Table 4 of Acemoglu, Johnson & Robinson (2001).
 #' @format A data frame with 64 rows and 9 variables:
@@ -30,20 +26,19 @@ if ("colonial.rda" %in% list.files("./data")) {
   # Our example is based on Table 4 of the paper
   download.file("http://economics.mit.edu/files/5136", "./data/colonial.zip")
   unzip("./data/colonial.zip", files = "maketable4.dta", exdir = "./data")
-  colonial <- haven::read_dta("./data/maketable4.dta")
+  colonial <- data.table::setDT(haven::read_dta("./data/maketable4.dta"))
   # Use the base sample of countries
-  colonial <- subset(colonial, baseco == 1)
-  colonial$baseco <- NULL
+  colonial <- colonial[baseco == 1]
+  colonial[, 'baseco' := NULL]
   # Saving and cleaning up workspace
   save(colonial, file = "./data/colonial.rda", compress = TRUE)
   rm(colonial)
-  system("rm ./data/colonial.zip")
-  system("rm ./data/maketable4.dta")
+  system("rm ./data/colonial.zip ./data/maketable4.dta")
 }
 
-#' Becker & Woessmann (2009) Dataset
+#' Becker and Woessmann (2009) Dataset
 #'
-#' @description Data on Prussian counties in 1871 from Becker & Woessmann's (2009) paper "Was Weber Wrong? A Human Capital Theory of Protestant Economic History."
+#' @description Data on Prussian counties in 1871 from Becker and Woessmann's (2009) paper "Was Weber Wrong? A Human Capital Theory of Protestant Economic History."
 #' @format A data frame with 452 rows and 44 variables:
 #' \describe{
 #'    \item{kreiskey1871}{kreiskey1871}
@@ -100,19 +95,15 @@ if ("colonial.rda" %in% list.files("./data")) {
 
 if ("weber.rda" %in% list.files("./data")) {
 } else {
-  download.file("https://www.cesifo-group.de/dms/ifodoc/iPEHD/Datasets/ipehd_qje2009_data_tables.zip", "./data/weber.zip", method = "curl") # need curl since https
-  unzip("./data/weber.zip", files = "ipehd_qje2009_master.dta",
-        exdir = "./data")
-  weber <- haven::read_dta("./data/ipehd_qje2009_master.dta")
+  download.file("https://www.cesifo-group.de/dms/ifodoc/iPEHD/Datasets/ipehd_qje2009_data_tables.zip", "./data/weber.zip")
+  unzip("./data/weber.zip", files = "ipehd_qje2009_master.dta", exdir = "./data")
+  weber <- data.table::setDT(haven::read_dta("./data/ipehd_qje2009_master.dta"))
   # Converting non-ASCII characters to UTF-8 encoding
-  Encoding(weber$county1871) <- "latin1"
-  weber$county1871 <- iconv(weber$county1871, "latin1", "UTF-8")
-  attr(weber, "var.labels")[9] <- "Popul. growth 1867-1871 (in %)"
+  enc2utf8(weber$county1871)
   # Saving and cleaning up workspace
   save(weber, file = "./data/weber.rda", compress = TRUE)
   rm(weber)
-  system("rm ./data/weber.zip")
-  system("rm ./data/ipehd_qje2009_master.dta")
+  system("rm ./data/weber.zip ./data/ipehd_qje2009_master.dta")
 }
 
 #' Blackburn and Neumark (1992) Wage dataset
@@ -151,31 +142,15 @@ if ("wage2.rda" %in% list.files("./data")) {
                 "./data/wooldridge.zip")
   unzip("./data/wooldridge.zip", files = c("WAGE2.raw", "WAGE2.DES"),
         exdir = "./data")
-  wage2 <- utils::read.table("./data/WAGE2.raw")
-  # The columns names are explained in WAGE2.DES
-  names(wage2) <- c("wage",    #monthly earnings
-                    "hours",   #average weekly hours
-                    "IQ",      #IQ score
-                    "KWW",     #knowledge of world work score
-                    "educ",    #years of education
-                    "exper",   #years of work experience
-                    "tenure",  #years with current employer
-                    "age",     #age in years
-                    "married", #=1 if married
-                    "black",   #=1 if black
-                    "south",   #=1 if live in south
-                    "urban",   #=1 if live in SMSA
-                    "sibs",    #number of siblings
-                    "brthord", #birth order
-                    "meduc",   #mother's education
-                    "feduc",   #father's education
-                    "lwage")   #natural log of wage
+  wage2 <- data.table::fread("./data/WAGE2.raw")
+  # The column names are explained in WAGE2.DES
+  data.table::setnames(wage2, c("wage", "hours", "IQ", "KWW", "educ", "exper",
+                                "tenure", "age", "married", "black", "south",
+                                "urban", "sibs", "brthord", "meduc", "feduc", "lwage"))
   # Create age-squared for non-linear earnings profile
-  wage2$age_sq <- wage2$age ^ 2
-  # Savingand cleaning up workspace
+  wage2[, 'age_sq' := age ^ 2]
+  # Saving and cleaning up workspace
   save(wage2, file = "./data/wage2.rda", compress = TRUE)
   rm(wage2)
-  system("rm ./data/wooldridge.zip")
-  system("rm ./data/WAGE2.DES")
-  system("rm ./data/WAGE2.raw")
+  system("rm ./data/wooldridge.zip ./data/WAGE2.DES ./data/WAGE2.raw")
 }

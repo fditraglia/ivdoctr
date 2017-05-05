@@ -3,7 +3,7 @@
 \docType{data}
 \name{colonial}
 \alias{colonial}
-\title{Acemoglu, Johnson & Robinson (2001) Dataset}
+\title{Acemoglu, Johnson, and Robinson (2001) Dataset}
 \format{A data frame with 64 rows and 9 variables:
 \describe{
    \item{shortnam}{three letter country abbreviation, e.g. AUS for Australia}

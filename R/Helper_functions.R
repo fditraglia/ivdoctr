@@ -1,5 +1,4 @@
-#' @importFrom Rcpp evalCpp
-#' @useDynLib ivdoctr
+#' @useDynLib ivdoctr, .registration = TRUE
 NULL
 
 #' Construct vectors of points that outline a rectangle.
