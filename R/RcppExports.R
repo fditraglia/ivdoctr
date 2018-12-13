@@ -10,6 +10,6 @@
 #' Output exactly matches that of riwish from the MCMCpack package if the same
 #' random seed is used.
 rinvwish <- function(n, v, S) {
-    .Call('ivdoctr_rinvwish', PACKAGE = 'ivdoctr', n, v, S)
+    .Call(`_ivdoctr_rinvwish`, n, v, S)
 }
 

@@ -63,19 +63,17 @@ make_I <- function(stats, example_name) {
 make_II_III <- function(stats, prior_name) {
   probs <- with(stats, sapply(c(p_empty, p_valid), format_est))
 
-  medians <- with(stats, sapply(c(beta_lower_median,
-                                  beta_upper_median,
+  medians <- with(stats, sapply(c(beta_lower,
+                                  beta_upper,
                                   r_uz_median,
                                   beta_bayes_median), format_est))
 
-  HPDIs <- with(stats, apply(matrix(c(beta_lower_lower_bound, beta_lower_upper_bound,
-                                      beta_upper_lower_bound, beta_upper_upper_bound,
-                                      r_uz_lower_bound, r_uz_upper_bound,
+  HPDIs <- with(stats, apply(matrix(c(r_uz_lower_bound, r_uz_upper_bound,
                                       beta_bayes_lower_bound, beta_bayes_upper_bound),
                                     ncol = 2, byrow = TRUE), 1, format_HPDI))
 
   row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, medians), shift = 5))
-  row2 <- make_tex_row(HPDIs, shift = 7)
+  row2 <- make_tex_row(HPDIs, shift = 9)
   paste(row1, row2, sep = '\\ ')
 }
 
@@ -144,14 +142,15 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                                 r_TstarU_restriction[i, ], k_restriction[i, ],
                                 n_RF_draws, n_IS_draws, Jeffreys, resample)
     bayes <- summarize_posterior(posterior)
+
+    # Compute covering beta interval
+    center <- bounds$center
+    beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
+    beta_interval <- getInterval(beta_bounds, center)
     stats <- list(p_empty = freq$p_empty,
                   p_valid = freq$p_valid,
-                  beta_lower_median = freq$restricted$median[1],
-                  beta_upper_median = freq$restricted$median[2],
-                  beta_lower_lower_bound = freq$restricted$lower[1],
-                  beta_lower_upper_bound = freq$restricted$upper[1],
-                  beta_upper_lower_bound = freq$restricted$lower[2],
-                  beta_upper_upper_bound = freq$restricted$upper[2],
+                  beta_lower = min(beta_interval),
+                  beta_upper = max(beta_interval),
                   r_uz_median = bayes$HPDI$median[1],
                   beta_bayes_median = bayes$HPDI$median[2],
                   r_uz_lower_bound = bayes$HPDI$lower[1],

@@ -1,3 +1,5 @@
+context("Datasets")
+
 test_that("Replicate Table 4 of Acemoglu et al (2001)", {
   skip_if_not_installed("sem")
   attach(colonial)

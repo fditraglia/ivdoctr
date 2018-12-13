@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // rinvwish
 arma::cube rinvwish(int n, int v, arma::mat S);
-RcppExport SEXP ivdoctr_rinvwish(SEXP nSEXP, SEXP vSEXP, SEXP SSEXP) {
+RcppExport SEXP _ivdoctr_rinvwish(SEXP nSEXP, SEXP vSEXP, SEXP SSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,4 +18,14 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(rinvwish(n, v, S));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_ivdoctr_rinvwish", (DL_FUNC) &_ivdoctr_rinvwish, 3},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_ivdoctr(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

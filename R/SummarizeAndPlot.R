@@ -51,17 +51,12 @@ summarize_bounds <- function(draws) {
                        rbind(k_lower = get_HPDI(k_lower),
                              r_uz_lower = get_HPDI(r_uz_lower),
                              r_uz_upper = get_HPDI(r_uz_upper)))
-
-  restricted <- with(draws$restricted,
-                     rbind(beta_lower = get_HPDI(beta_lower),
-                           beta_upper = get_HPDI(beta_upper)))
   p_valid <- get_p_valid(draws)
   list(unrestricted = unrestricted,
        r_TstarU_restriction = draws$r_TstarU_restriction,
        k_restriction = draws$k_restriction,
        p_empty = mean(draws$empty),
-       p_valid = p_valid,
-       restricted = restricted)
+       p_valid = p_valid)
 }
 
 summarize_posterior <- function(draws) {

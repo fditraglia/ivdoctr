@@ -6,9 +6,8 @@
 #' @return Coverage percentage
 #' @export
 #'
-#' @examples
 getCoverage <- function(data, guess) {
-  coverage <- (min(guess) <= data$min) * (max(guess) >= data$max)
+  coverage <- (min(guess) <= apply(data, 1, min)) * (max(guess) >= apply(data, 1, max))
   coverage <- sum(coverage) / nrow(data)
   return(coverage)
 }
@@ -16,16 +15,19 @@ getCoverage <- function(data, guess) {
 #' Generates smallest covering interval
 #'
 #' @param data 2-column data frame of confidence intervals
+#' @param center 2-element vector to center coverage interval
 #' @param conf Confidence level
 #' @param tol Tolerance level for convergence
 #'
 #' @return 2-element vector of confidence interval
 #' @export
 #'
-#' @examples
-getInterval <- function(data, conf = 0.95, tol = 1e-6) {
-  maxInt <- c(min(data), max(data))
-  minInt <- c(mean(maxInt), mean(maxInt))
+getInterval <- function(data, center, conf = 0.9, tol = 1e-6) {
+  data <- na.omit(data)
+  minInt <- center
+  stretch <- max(abs(min(minInt) - min(data)),
+                 abs(max(minInt) - max(data)))
+  maxInt <- c(min(center) - stretch, max(center) + stretch)
   delta <- 1
   prev <- maxInt
   while (delta > tol) {

@@ -157,6 +157,8 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
 
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
                                 n_draws, Jeffreys)
+  n_draws <- n_draws + 1 # adding average draw at the end.
+  obs_draws <- rbind(obs_draws, lapply(obs_draws, mean)) # making final row the mean of observables
   unrestricted_bounds <- get_bounds_unrest(obs_draws)
   empty <- NULL
   k_tilde_lower <- unrestricted_bounds$k_tilde$Lower
@@ -201,6 +203,7 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                              beta_upper = beta_upper,
                              r_uz_lower = r_uz_restricted$min,
                              r_uz_upper = r_uz_restricted$max)
+    restricted <- head(restricted, -1) # Removing average row at the end
   } else {
     restricted <- NULL
   }
@@ -208,13 +211,14 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                              k_lower = unrestricted_bounds$k$Lower,
                              r_uz_lower = unrestricted_bounds$r_uz$Lower,
                              r_uz_upper = unrestricted_bounds$r_uz$Upper)
-  list(observables = obs_draws,
-       empty = empty,
-       unrestricted = unrestricted,
+  list(observables = head(obs_draws, -1), #Removing extra row
+       empty = head(empty, -1),
+       unrestricted = head(unrestricted, -1),
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
        restricted = restricted,
-       not_positive_definite = obs_draws$not_positive_definite)
+       not_positive_definite = head(obs_draws$not_positive_definite, 1),
+       center = c(beta_lower[length(beta_lower)], beta_upper[length(beta_upper)])) # Adding avg beta lower and upper for interval coverage
 }
 
 draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
