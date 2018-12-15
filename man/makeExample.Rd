@@ -7,7 +7,7 @@
 makeExample(y_name, T_name, z_name, data, controls = NULL,
   robust = FALSE, r_TstarU_restriction = NULL, k_restriction = NULL,
   n_draws = 5000, n_RF_draws = 1000, n_IS_draws = 1000,
-  resample = FALSE, Jeffreys = FALSE, example_name)
+  resample = FALSE, example_name)
 }
 \arguments{
 \item{y_name}{Character string with the column name of the dependent variable}
@@ -33,8 +33,6 @@ makeExample(y_name, T_name, z_name, data, controls = NULL,
 \item{n_IS_draws}{Number of draws on the identified set}
 
 \item{resample}{Indicator of whether or not to resample using magnification factor}
-
-\item{Jeffreys}{Indicator of whether to draw covariance matrix using the Jeffreys prior to ensure positive definiteness}
 
 \item{example_name}{Character string describing the example}
 }

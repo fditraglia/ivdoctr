@@ -91,14 +91,12 @@ make_II_III <- function(stats, prior_name) {
 #' @param n_RF_draws Number of reduced-form draws
 #' @param n_IS_draws Number of draws on the identified set
 #' @param resample Indicator of whether or not to resample using magnification factor
-#' @param Jeffreys Indicator of whether to draw covariance matrix using the Jeffreys prior to ensure positive definiteness
 #' @param example_name Character string describing the example
 #' @export
 makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                         robust = FALSE, r_TstarU_restriction = NULL,
                         k_restriction = NULL, n_draws = 5000, n_RF_draws = 1000,
-                        n_IS_draws = 1000, resample = FALSE, Jeffreys = FALSE,
-                        example_name) {
+                        n_IS_draws = 1000, resample = FALSE, example_name) {
   if (is.null(r_TstarU_restriction)) {
     r_TstarU_restriction <- matrix(c(-1, 1), nrow = 1)
   }
@@ -136,11 +134,11 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   for (i in 1:nExamples) {
     bounds <- draw_bounds(y_name, T_name, z_name, data, controls,
                           r_TstarU_restriction[i, ], k_restriction[i, ],
-                          n_draws, Jeffreys)
+                          n_draws)
     freq <- summarize_bounds(bounds)
     posterior <- draw_posterior(y_name, T_name, z_name, data, controls,
                                 r_TstarU_restriction[i, ], k_restriction[i, ],
-                                n_RF_draws, n_IS_draws, Jeffreys, resample)
+                                n_RF_draws, n_IS_draws, resample)
     bayes <- summarize_posterior(posterior)
 
     # Compute covering beta interval
