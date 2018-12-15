@@ -9,12 +9,14 @@ NULL
 #' @param Tobs Matrix containing data for the preferred regressor
 #' @param z Matrix containing data for the instrumental variable
 #' @param n_draws Integer number of draws to perform
+#' @param k Number of covariates, including the intercept
 #'
 #' @return Array of covariance matrix draws
-draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
+draw_sigma_jeffreys <- function(y, Tobs, z, k, n_draws) {
   n <- length(y)
+  v <- n - k + 3 + 1
   S <- (n - 1) * cov(cbind(Tobs, y, z))
-  Sigma_draws <- rinvwish(n_draws, n - 1, S)
+  Sigma_draws <- rinvwish(n_draws, v, S)
   rownames(Sigma_draws) <- colnames(Sigma_draws) <- c("Tobs", "y", "z")
   return(Sigma_draws)
 }
@@ -52,8 +54,8 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
     T_Rsq <- z_Rsq <- 0 # No controls is the same as controls that are
                         # uncorrelated with both Tobs and z
   }
-
-  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, n_draws)
+  k <- length(controls) + 1
+  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, k, z, n_draws)
   not_positive_definite <- rep(FALSE, n_draws)
 
   s2_T <- Sigma_draws["Tobs", "Tobs", ]

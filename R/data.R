@@ -232,6 +232,9 @@ if ("afghan.rda" %in% list.files("./data")) {
                     (land > 10 & obs == 1) |
                     (sheep > 50 & obs == 1))
   afghan <- afghan[!outlier]
+  afghan <- afghan[, .(enrolled, testscore, buildschool, headchild, female, age,
+                       yrsvill, farsi, tajik, farmers, agehead, educhead, nhh,
+                       land, sheep, distschool, chagcharan)]
 
   # remove missing observations
   afghan <- na.omit(afghan)
