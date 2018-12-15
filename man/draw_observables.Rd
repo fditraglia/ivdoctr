@@ -5,7 +5,7 @@
 \title{Simulates different data draws}
 \usage{
 draw_observables(y_name, T_name, z_name, data, controls = NULL,
-  n_draws = 5000, Jeffreys = FALSE)
+  n_draws = 5000)
 }
 \arguments{
 \item{y_name}{Character vector of the name of the dependent variable}
@@ -19,10 +19,6 @@ draw_observables(y_name, T_name, z_name, data, controls = NULL,
 \item{controls}{Character vector containing the names of the exogenous regressors}
 
 \item{n_draws}{Integer number of simulations to draw}
-
-\item{Jeffreys}{Boolean indicator of whether to impose the Jeffreys prior to
-ensure positive definiteness of the covariance matrix (Bayesian) or to
-use the central limit theorem (frequentist-friendly)}
 }
 \value{
 Data frame containing covariances, correlations, and R-squares for

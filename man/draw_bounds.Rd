@@ -5,8 +5,7 @@
 \title{Computes bounds for simulated data}
 \usage{
 draw_bounds(y_name, T_name, z_name, data, controls = NULL,
-  r_TstarU_restriction = NULL, k_restriction = NULL, n_draws = 5000,
-  Jeffreys = FALSE)
+  r_TstarU_restriction = NULL, k_restriction = NULL, n_draws = 5000)
 }
 \arguments{
 \item{y_name}{Character vector of the name of the dependent variable}
@@ -25,10 +24,6 @@ imposed on r_TstarU}
 \item{k_restriction}{2-element vector containing the min and max imposed on kappa}
 
 \item{n_draws}{Integer number of simulations to draw}
-
-\item{Jeffreys}{Boolean indicator of whether to impose the Jeffreys prior to
-ensure positive definiteness of the covariance matrix (Bayesian) or to
-use the central limit theorem (frequentist-friendly)}
 }
 \value{
 List containing simulated data observables (covariances,

@@ -1,44 +1,7 @@
 #' @import stats
 #' @importFrom MASS mvrnorm
+#' @importFrom utils head
 NULL
-
-#' Draws covariance matrix using the CLT
-#'
-#' This function takes the data and assumes that the covariance between the
-#'   dependent variable and the preferred regressor (Tobs and y) and the
-#'   covariance between the instrument and the dependent variable is normal.
-#'   However, only drawing these parameters does not guarantee that the
-#'   full covariance matrix will be positive definite. However, this does
-#'   avoid the necessity of imposing a prior and redrawing the whole covariance
-#'   matrix using Bayesian methods.
-#'
-#' @param y Vector of dependent variable data
-#' @param Tobs Matrix containing data for the endogenous regressor
-#' @param z Matrix containing data for the instrumental variable
-#' @param n_draws Integer number of draws to generate
-#'
-#' @return List of covariance matrix draws (Sigma) and an indicator of whether
-#'   each one is positive definite
-draw_sigma_CLT <- function(y, Tobs, z, n_draws) {
-  n <- length(y)
-  e_T <- resid(lm(y ~ Tobs))
-  e_z <- resid(lm(y ~ z))
-  V <- cov(cbind(Tobs * e_T, z * e_z))
-  Sigma <- cov(cbind(Tobs, y, z))
-  sims <- MASS::mvrnorm(n_draws, c(Sigma["Tobs", "y"], Sigma["z", "y"]), V / n)
-  g <- function(sim_row){
-    out <- Sigma
-    out["Tobs", "y"] <- out["y","Tobs"] <- sim_row[1]
-    out["y", "z"] <- out["z", "y"] <- sim_row[2]
-    return(out)
-  }
-  Sigma_draws <- apply(sims, 1, g)
-  dim(Sigma_draws) <- c(3, 3, n_draws)
-  not_positive_definite <- (apply(Sigma_draws, 3, det) < 0)
-  rownames(Sigma_draws) <- colnames(Sigma_draws) <- c("Tobs", "y", "z")
-  return(list(Sigma_draws = Sigma_draws,
-              not_positive_definite = not_positive_definite))
-}
 
 #' Draws covariance matrix using the Jeffrey's Prior
 #'
@@ -67,13 +30,11 @@ draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
 #' @param data Data to be analyzed
 #' @param controls Character vector containing the names of the exogenous regressors
 #' @param n_draws Integer number of simulations to draw
-#' @param Jeffreys Boolean indicator of whether to impose the Jeffreys prior to
-#'   ensure positive definiteness of the covariance matrix (Bayesian) or to
-#'   use the central limit theorem (frequentist-friendly)
+#'
 #' @return Data frame containing covariances, correlations, and R-squares for
 #'   each data simulation
 draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
-                             n_draws = 5000, Jeffreys = FALSE) {
+                             n_draws = 5000) {
 
   # Project out control regressors if present
   if (!is.null(controls)) {
@@ -92,15 +53,8 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
                         # uncorrelated with both Tobs and z
   }
 
-  if (Jeffreys) {
-    Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, n_draws)
-    not_positive_definite <- rep(FALSE, n_draws)
-  } else {
-    temp <- draw_sigma_CLT(y, Tobs, z, n_draws)
-    Sigma_draws <- temp$Sigma_draws
-    not_positive_definite <- temp$not_positive_definite
-    rm(temp)
-  }
+  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, n_draws)
+  not_positive_definite <- rep(FALSE, n_draws)
 
   s2_T <- Sigma_draws["Tobs", "Tobs", ]
   s2_y <- Sigma_draws["y", "y", ]
@@ -144,19 +98,17 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
 #'   imposed on r_TstarU
 #' @param k_restriction 2-element vector containing the min and max imposed on kappa
 #' @param n_draws Integer number of simulations to draw
-#' @param Jeffreys Boolean indicator of whether to impose the Jeffreys prior to
-#'   ensure positive definiteness of the covariance matrix (Bayesian) or to
-#'   use the central limit theorem (frequentist-friendly)
+#'
 #' @return List containing simulated data observables (covariances,
 #'   correlations, and R-squares), indications of whether the identified set
 #'   is empty, the unrestricted and restricted bounds on instrumental relevance,
 #'   instrumental validity, and measurement error.
 draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                         r_TstarU_restriction = NULL, k_restriction = NULL,
-                        n_draws = 5000, Jeffreys = FALSE) {
+                        n_draws = 5000) {
 
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
-                                n_draws, Jeffreys)
+                                n_draws)
   n_draws <- n_draws + 1 # adding average draw at the end.
   obs_draws <- rbind(obs_draws, lapply(obs_draws, mean)) # making final row the mean of observables
   unrestricted_bounds <- get_bounds_unrest(obs_draws)
@@ -224,10 +176,9 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
 draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
                            r_TstarU_restriction, k_restriction = NULL,
                            n_RF_draws = 1000, n_IS_draws = 1000,
-                           Jeffreys = FALSE, resample = FALSE) {
+                           resample = FALSE) {
 
-  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
-                                n_RF_draws, Jeffreys)
+  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls, n_RF_draws)
 
   k_tilde_lower <- get_bounds_unrest(obs_draws)$k_tilde$Lower
   k_min <- pmax(min(k_restriction), k_tilde_lower)
