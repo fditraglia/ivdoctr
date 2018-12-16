@@ -55,7 +55,7 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
                         # uncorrelated with both Tobs and z
   }
   k <- length(controls) + 1
-  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, k, z, n_draws)
+  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, k, n_draws)
   not_positive_definite <- rep(FALSE, n_draws)
 
   s2_T <- Sigma_draws["Tobs", "Tobs", ]
@@ -172,7 +172,8 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
        r_TstarU_restriction = r_TstarU_restriction,
        restricted = restricted,
        not_positive_definite = head(obs_draws$not_positive_definite, 1),
-       center = c(beta_lower[length(beta_lower)], beta_upper[length(beta_upper)])) # Adding avg beta lower and upper for interval coverage
+       beta_center = c(tail(beta_lower, 1), tail(beta_upper, 1)), # Adding avg beta lower and upper for interval coverage
+       r_uz_center = c(tail(r_uz_restricted$min, 1), tail(r_uz_restricted$max, 1)))
 }
 
 draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,

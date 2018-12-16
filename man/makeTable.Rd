@@ -4,13 +4,14 @@
 \alias{makeTable}
 \title{Generates table of parameter estimates given user restrictions and data}
 \usage{
-makeTable(file, ...)
+makeTable(file, binary, ...)
 }
 \arguments{
 \item{file}{Character string with the path name of the .tex file to be saved}
 
-\item{...}{Arguments of TeX code for individual examples to be combined
-into a single table}
+\item{binary}{Indicator for if data is binary}
+
+\item{...}{Arguments of TeX code for individual examples to be combined into a single table}
 }
 \description{
 Generates table of parameter estimates given user restrictions and data

@@ -1,3 +1,5 @@
+#' @import data.table
+NULL
 #' Rounds x to two decimal places
 #' @param x Number to be rounded
 #' @return Number rounded to 2 decimal places
@@ -23,7 +25,7 @@ format_se <- function(se) {
 #' @param bounds 2-element vector of the upper and lower HPDI bounds
 #' @return LaTeX string of the HPDI
 format_HPDI <- function(bounds) {
-  paste0('$[', myformat(bounds[1]), ',', myformat(bounds[2]), ']$')
+  paste0('$[', myformat(bounds[1]), ', ', myformat(bounds[2]), ']$')
 }
 
 #' Makes LaTeX code to make a row of a table and shift by some amount of columns
@@ -47,7 +49,11 @@ make_tex_row <- function(char_vec, shift = 0) {
 #' @return LaTeX code for the reduced-form estimates part of the table
 make_I <- function(stats, example_name) {
   example_name <- paste(example_name, paste0('($n=', stats$n, '$)'))
-  est <- with(stats, sapply(c(b_OLS, b_IV, k_lower, r_uz_bound), format_est))
+  if (stats$binary == 1) {
+    est <- with(stats, sapply(c(b_OLS, b_IV, a0, a1), format_est))
+  } else {
+    est <- with(stats, sapply(c(b_OLS, b_IV, k_lower), format_est))
+  }
   est <- make_tex_row(c(example_name, est))
   se <- with(stats, sapply(c(se_OLS, se_IV), format_se))
   se <- make_tex_row(se, shift = 1)
@@ -62,18 +68,22 @@ make_I <- function(stats, example_name) {
 #' @return LaTeX string outputting a row of a table for those user restrictions
 make_II_III <- function(stats, prior_name) {
   probs <- with(stats, sapply(c(p_empty, p_valid), format_est))
-
-  medians <- with(stats, sapply(c(beta_lower,
-                                  beta_upper,
-                                  r_uz_median,
+  ints <- with(stats, apply(matrix(c(r_uz_lower, r_uz_upper,
+                                     beta_lower, beta_upper),
+                                   ncol = 2, byrow = TRUE), 1, format_HPDI))
+  medians <- with(stats, sapply(c(r_uz_median,
                                   beta_bayes_median), format_est))
 
   HPDIs <- with(stats, apply(matrix(c(r_uz_lower_bound, r_uz_upper_bound,
                                       beta_bayes_lower_bound, beta_bayes_upper_bound),
                                     ncol = 2, byrow = TRUE), 1, format_HPDI))
-
-  row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, medians), shift = 5))
-  row2 <- make_tex_row(HPDIs, shift = 9)
+  if (stats$p_empty > 0) {
+    row1 <- paste0("\\hspace{2em}", prior_name,  "&&&&& $0.27$ & - & $[-, -]$ & $[-, -]$ & - & - \\\\")
+    row2 <- paste0("&&&&&&&&& $[-, -]$ & $[-, -]$ \\\\")
+  } else {
+    row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, ints, medians), shift = 5))
+    row2 <- make_tex_row(HPDIs, shift = 9)
+  }
   paste(row1, row2, sep = '\\ ')
 }
 
@@ -97,6 +107,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                         robust = FALSE, r_TstarU_restriction = NULL,
                         k_restriction = NULL, n_draws = 5000, n_RF_draws = 1000,
                         n_IS_draws = 1000, resample = FALSE, example_name) {
+  binary <- ifelse(length(unique(data[, ..T_name])) == 2, 1, 0)
   if (is.null(r_TstarU_restriction)) {
     r_TstarU_restriction <- matrix(c(-1, 1), nrow = 1)
   }
@@ -114,7 +125,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
            that they are of the same dimension so that all examples are accounted
            for.")
     }
-    }
+  }
   summary_stats <- get_estimates(y_name, T_name, z_name, data, controls, robust)
   obs <- get_observables(y_name, T_name, z_name, data, controls)
   bounds_unrest <- get_bounds_unrest(obs)
@@ -125,9 +136,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                   b_IV = summary_stats$b_IV,
                   se_IV = summary_stats$se_IV,
                   k_lower = bounds_unrest$k$Lower,
-                  r_uz_bound = ifelse(abs(bounds_unrest$r_uz$Lower) == 1,
-                                      bounds_unrest$r_uz$Upper,
-                                      bounds_unrest$r_uz$Lower))
+                  binary = binary)
   headline <- make_I(stats_I, example_name)
   nExamples <- nrow(r_TstarU_restriction)
   exampleTex <- NULL
@@ -142,11 +151,19 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
     bayes <- summarize_posterior(posterior)
 
     # Compute covering beta interval
-    center <- bounds$center
+    beta_center <- bounds$beta_center
     beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
-    beta_interval <- getInterval(beta_bounds, center)
+    beta_interval <- getInterval(beta_bounds, beta_center)
+
+    # Compute covering r_uz interval
+    r_uz_center <- bounds$r_uz_center
+    r_uz_bounds <- cbind(bounds$restricted$r_uz_lower, bounds$restricted$r_uz_upper)
+    r_uz_interval <- getInterval(r_uz_bounds, r_uz_center)
+
     stats <- list(p_empty = freq$p_empty,
                   p_valid = freq$p_valid,
+                  r_uz_lower = min(r_uz_interval),
+                  r_uz_upper = max(r_uz_interval),
                   beta_lower = min(beta_interval),
                   beta_upper = max(beta_interval),
                   r_uz_median = bayes$HPDI$median[1],
@@ -166,11 +183,23 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   }
   output <- paste(headline, exampleTex, sep = "\\ ")
   return(output)
-    }
+}
 
-#' Generates header LaTeX code for continuous table
-#'
-table_header_fn <- function() {
+# Generates header LaTeX code for continuous table
+table_header_cts <- function() {
+  "\\begin{tabular}{lccccccccc}
+  \\hline
+  \\hline
+  &\\multicolumn{3}{c}{(I) Summary Statistics}
+  &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
+  &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
+  \\cmidrule(lr){2-4}\\cmidrule(lr){5-8}\\cmidrule(lr){9-10}
+  & OLS & IV & L & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & \\beta & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
+  \\\\"
+}
+
+# Generates header LaTeX code for continuous table
+table_header_bin <- function() {
   "\\begin{tabular}{lcccccccccc}
   \\hline
   \\hline
@@ -178,7 +207,7 @@ table_header_fn <- function() {
   &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
   &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
   \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
-  & OLS & IV & $\\underline{\\kappa}$ & $\\underline{\\tilde{\\rho}}_{uz}/\\tilde{\\bar{\\rho}}_{uz}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\underline{\\beta}$ & $\\bar{\\beta}$ & $\\rho_{uz}$ & $\\beta$ \\\\
+  & OLS & IV & \\bar{\\alpha_0} & \\bar{\\alpha_1} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & \\beta & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
   \\\\"
 }
 
@@ -192,10 +221,11 @@ table_footer_fn <- function() {
 #' Generates table of parameter estimates given user restrictions and data
 #'
 #' @param file Character string with the path name of the .tex file to be saved
-#' @param ... Arguments of TeX code for individual examples to be combined
-#'   into a single table
+#' @param ... Arguments of TeX code for individual examples to be combined into a single table
+#' @param binary Indicator for if data is binary
+#'
 #' @export
-makeTable <- function(file, ...) {
+makeTable <- function(file, binary, ...) {
 
   table_examples <- c()
   list_examples <- list(...)
@@ -204,6 +234,9 @@ makeTable <- function(file, ...) {
     table_examples <- c(table_examples, list_examples[[i]], "\\\\")
   }
 
-  cat(table_header_fn(), '\\\\', table_examples, table_footer_fn(),
-      sep = '\n', file = file)
+  if (binary) {
+    cat(table_header_bin(), '\\\\', table_examples, table_footer_fn(), sep = '\n', file = file)
+  } else {
+    cat(table_header_cts(), '\\\\', table_examples, table_footer_fn(), sep = '\n', file = file)
+  }
 }

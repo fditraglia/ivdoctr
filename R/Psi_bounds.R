@@ -43,3 +43,19 @@ get_L <- function(draws) {
   L <- num / denom
   return(L)
 }
+
+#' Computes a0 and a1 bounds
+#'
+#' @param draws data.frame of observables of simulated data
+#' @param p Treatment probability from binary data
+#'
+#' @return List of alpha bounds
+#' @export
+#'
+get_alpha_bounds <- function(draws, p) {
+  L <- get_L(draws)
+  a0 <- draws$s2_T * (1 - L) / (1 - p)
+  a1 <- draws$s2_T * (1 - L) / p
+  ans <- list(a0 = a0, a1 = a1)
+  return(ans)
+}

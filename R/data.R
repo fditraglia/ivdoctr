@@ -1,3 +1,5 @@
+#' @import data.table
+NULL
 #' Acemoglu, Johnson, and Robinson (2001) Dataset
 #'
 #' @description Cross-country dataset used to construct Table 4 of Acemoglu, Johnson & Robinson (2001).

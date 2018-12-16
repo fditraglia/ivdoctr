@@ -71,3 +71,14 @@ test_that("get_L properly computes L", {
   ans <- get_L(draws)
   expect_equal(expected_answer, ans)
 })
+
+test_that("get_alpha_bounds properly computes bounds", {
+  p <- 0.5
+  draws <- data.frame(s2_T = 1,
+                      r_Ty = 1,
+                      r_Tz = 1,
+                      r_zy = 0)
+  expected_answer <- list(a0 = -2, a1 = -2)
+  ans <- get_alpha_bounds(draws, p)
+  expect_equal(expected_answer, ans)
+})
