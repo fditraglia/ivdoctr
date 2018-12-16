@@ -168,6 +168,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
     r_uz_center <- bounds$r_uz_center
     r_uz_bounds <- cbind(bounds$restricted$r_uz_lower, bounds$restricted$r_uz_upper)
     r_uz_interval <- getInterval(r_uz_bounds, r_uz_center)
+    r_uz_interval <- c(max(-1, r_uz_interval[1]), min(1, r_uz_interval[2]))
 
     stats <- list(p_empty = freq$p_empty,
                   p_valid = freq$p_valid,

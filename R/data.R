@@ -108,54 +108,6 @@ if ("weber.rda" %in% list.files("./data")) {
   system("rm ./data/weber.zip ./data/ipehd_qje2009_master.dta")
 }
 
-#' Blackburn and Neumark (1992) Wage dataset
-#'
-#' @description A subset of Blackburn and Neumark's (1992) dataset provided by
-#' Jeffrey Wooldridge as an example in his introductory econometrics textbook.
-#' The subset contains only observations from 1980.
-#' @format A data frame with 935 rows and 17 variables:
-#' \describe{
-#'    \item{wage}{monthly earnings}
-#'    \item{hours}{average weekly hours}
-#'    \item{IQ}{IQ score}
-#'    \item{KWW}{knowledge of world work score}
-#'    \item{educ}{years of education}
-#'    \item{exper}{years of work experience}
-#'    \item{tenure}{years with current employer}
-#'    \item{age}{age in years}
-#'    \item{age_sq}{age in years squared}
-#'    \item{married}{=1 if married}
-#'    \item{black}{=1 if black}
-#'    \item{south}{=1 if live in south}
-#'    \item{urban}{=1 if live in SMSA}
-#'    \item{sibs}{number of siblings}
-#'    \item{brthord}{birth order}
-#'    \item{meduc}{mother's education}
-#'    \item{feduc}{father's education}
-#'    \item{lwage}{natural log of wage}
-#' }
-#' @source \url{http://www.cengage.com/aise/economics/wooldridge_3e_datasets/}
-#' @references \url{http://qje.oxfordjournals.org/content/107/4/1421.full.pdf+html}
-"wage2"
-
-if ("wage2.rda" %in% list.files("./data")) {
-} else {
-  download.file("http://www.cengage.com/aise/economics/wooldridge_3e_datasets/textfiles.ZIP",
-                "./data/wooldridge.zip")
-  unzip("./data/wooldridge.zip", files = c("WAGE2.raw", "WAGE2.DES"), exdir = "./data")
-  wage2 <- fread("./data/WAGE2.raw")
-  # The column names are explained in WAGE2.DES
-  setnames(wage2, c("wage", "hours", "IQ", "KWW", "educ", "exper", "tenure",
-                    "age", "married", "black", "south", "urban", "sibs",
-                    "brthord", "meduc", "feduc", "lwage"))
-  # Create age-squared for non-linear earnings profile
-  wage2[, "age_sq" := age ^ 2]
-  # Saving and cleaning up workspace
-  save(wage2, file = "./data/wage2.rda", compress = TRUE)
-  rm(wage2)
-  system("rm ./data/wooldridge.zip ./data/WAGE2.DES ./data/WAGE2.raw")
-}
-
 #' Burde and Linden (2013, AEJ Applied) Dataset
 #'
 #' @description Replicates IV using controls from Table 2
