@@ -13,7 +13,7 @@ get_new_draws <- function(obs_draws, post_draws) {
   new_draws <- data.frame(r_TstarU = r_TstarU,
                           k = kappa,
                           r_uz = rep(0, length(kappa)),
-                          s_u, post_draws$s_u,
+                          s_u = post_draws$s_u,
                           post_draws = post_draws$beta)
   return(new_draws)
 }

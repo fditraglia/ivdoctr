@@ -6,46 +6,23 @@
 \title{Burde and Linden (2013, AEJ Applied) Dataset}
 \format{A data frame with ??? rows and ??? variables:
 \describe{
-   \item{hhid07}{Household ID 2007}
+   \item{enrolled}{Indicator if child is enrolled in formal school. Outcome.}
+   \item{testscore}{Normalized test score}
+   \item{buildschool}{Indicator if village is treated. Instrument.}
    \item{headchild}{Indicator if child is child of head of household}
+   \item{nhh}{Number of household members}
    \item{female}{Female indicator}
    \item{age}{Child's age}
    \item{yrsvill}{Time family has lived in village}
-   \item{agehead}{Head of household age}
-   \item{educhead}{Years of education for head of household}
-   \item{nhh}{Number of household members}
-   \item{land}{Number of jeribs of land owned}
-   \item{sheep}{Number of sheep and goats owned}
    \item{farsi}{Indicator for speaking Farsi}
    \item{tajik}{Indicator for speaking Tajik}
    \item{farmers}{Indicator for if head of household is a farmer}
-   \item{test_ind}{Indicator if child took survey test}
-   \item{headchild07}{Indicator if child is child of head of household}
-   \item{female07}{Female indicator}
-   \item{age07}{Child's age}
-   \item{agehead07}{Head of household age}
-   \item{educhead07}{Years of education for head of household}
-   \item{land07}{Number of jeribs of land owned}
-   \item{sheep07}{Number of sheep and goats owned}
-   \item{yrsvill07}{Time family has lived in village}
-   \item{farsi07}{Indicator for speaking Farsi}
-   \item{tajik07}{Indicator for speaking Tajik}
-   \item{farmers07}{Indicator for if head of household is a farmer}
-   \item{nhh07}{Number of household members}
-   \item{test_ind07}{Indicator if child took survey test}
-   \item{obs07}{Indicator if child is observed}
-   \item{obs}{Indicator if child is observed}
-   \item{buildschool}{Indicator if village is treated. Instrument.}
-   \item{c}{Village group ID for clustering}
+   \item{land}{Number of jeribs of land owned}
+   \item{agehead}{Head of household age}
+   \item{educhead}{Years of education for head of household}
+   \item{sheep}{Number of sheep and goats owned}
    \item{chagcharan}{Indicator if village is in Chagcharan district}
-   \item{enrolled07}{Indicator if child is enrolled in formal school. Treatment.}
-   \item{enrolled}{Indicator if child is enrolled in formal school. Outcome.}
-   \item{distschool07}{Distance to nearest non-community based school}
    \item{distschool}{Distance to nearest non-community based school}
-   \item{testscore07}{Normalized test score}
-   \item{testscore}{Normalized test score}
-   \item{hhid}{Household ID}
-   \item{childid}{Child ID}
 }}
 \source{
 Provided by author.

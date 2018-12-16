@@ -1,6 +1,6 @@
 #' @import stats
 #' @importFrom MASS mvrnorm
-#' @importFrom utils head
+#' @importFrom utils head tail
 NULL
 
 #' Draws covariance matrix using the Jeffrey's Prior
