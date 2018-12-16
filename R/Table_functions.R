@@ -107,7 +107,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                         robust = FALSE, r_TstarU_restriction = NULL,
                         k_restriction = NULL, n_draws = 5000, n_RF_draws = 1000,
                         n_IS_draws = 1000, resample = FALSE, example_name) {
-  binary <- ifelse(length(unique(data[, ..T_name])) == 2, 1, 0)
+  binary <- ifelse(uniqueN(data[[T_name]]) == 2, 1, 0)
   if (is.null(r_TstarU_restriction)) {
     r_TstarU_restriction <- matrix(c(-1, 1), nrow = 1)
   }
@@ -130,12 +130,21 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   obs <- get_observables(y_name, T_name, z_name, data, controls)
   bounds_unrest <- get_bounds_unrest(obs)
 
+  if (binary) {
+    p <- mean(data[[T_name]])
+    alpha_bounds <- get_alpha_bounds(obs, p)
+  } else {
+    alpha_bounds <- NULL
+  }
+
   stats_I <- list(n = summary_stats$n,
                   b_OLS = summary_stats$b_OLS,
                   se_OLS = summary_stats$se_OLS,
                   b_IV = summary_stats$b_IV,
                   se_IV = summary_stats$se_IV,
                   k_lower = bounds_unrest$k$Lower,
+                  a0 = alpha_bounds$a0,
+                  a1 = alpha_bounds$a1,
                   binary = binary)
   headline <- make_I(stats_I, example_name)
   nExamples <- nrow(r_TstarU_restriction)
