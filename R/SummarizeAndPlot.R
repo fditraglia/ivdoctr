@@ -71,14 +71,17 @@ summarize_posterior <- function(draws) {
 }
 
 summarize_posterior_binary <- function(draws, p) {
+  # Calculating new beta with psi adjustment
   kappa <- draws$posterior$k
-  psi_lower <- get_psi_lower(draws$posterior, p, kappa)
-  psi_upper <- get_psi_upper(draws$posterior, p, kappa)
+  s2_T <- draws$observables$s2_T
+  psi_lower <- get_psi_lower(s2_T, p, kappa)
+  psi_upper <- get_psi_upper(s2_T, p, kappa)
   psi_bounds <- cbind(psi_lower, psi_upper)
   psi_draw <- apply(psi_bounds, 1, function(x) runif(1, x[1], x[2]))
-  new_beta <- draws$beta * (1 + psi_draw)
-  ans <- get_HPDI(new_beta)
-  return(ans)
+  new_beta <- draws$posterior$beta * (1 + psi_draw)
+  HPDI <- with(draws$posterior, rbind(r_uz = get_HPDI(r_uz),
+                                      beta = get_HPDI(new_beta)))
+  return(HPDI)
 }
 
 # Generates plot for a given restriction on r_TstarU and kappa

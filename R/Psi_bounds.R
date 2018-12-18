@@ -1,31 +1,31 @@
 #' Computes the upper bound of psi for binary data
 #'
-#' @param draws data.frame of observables of simulated data
+#' @param s2_T Vector of s2_T draws from observables
 #' @param p Treatment probability from binary data
 #' @param kappa Vector of kappa, NOTE: kappa_tilde in the paper
 #'
 #' @return Vector of upper bounds for psi
 #' @export
 #'
-get_psi_upper <- function(draws, p, kappa) {
-  ans <- (-draws$s2_T * (1 - kappa)) / max(p, 1 - p)
+get_psi_upper <- function(s2_T, p, kappa) {
+  ans <- (-s2_T * (1 - kappa)) / max(p, 1 - p)
   return(ans)
 }
 
 #' Computes the lower bound of psi for binary data
 #'
-#' @param draws data.frame of observables of simulated data
+#' @param s2_T Vector of s2_T draws from observables
 #' @param p Treatment probability from binary data
 #' @param kappa Vector of kappa, NOTE: kappa_tilde in the paper
 #'
 #' @return Vector of lower bounds for psi
 #' @export
 #'
-get_psi_lower <- function(draws, p, kappa) {
+get_psi_lower <- function(s2_T, p, kappa) {
   m <- max((1 - p) * (2 * p - 2), p * (1 - 2 * p))
-  ind <- (draws$s2_T * (1 - kappa) <= m)
-  psi1 <- (-draws$s2_T * (1 - kappa)) / min(p, 1 - p)
-  psi2 <- 2 * sqrt(p * (1 - p) - draws$s2_T * (1 - kappa)) - 1
+  ind <- (s2_T * (1 - kappa) <= m)
+  psi1 <- (-s2_T * (1 - kappa)) / min(p, 1 - p)
+  psi2 <- 2 * sqrt(p * (1 - p) - s2_T * (1 - kappa)) - 1
   psi_lower <- psi1 * ind + psi2 * (1 - ind)
   return(psi_lower)
 }

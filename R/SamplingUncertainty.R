@@ -109,8 +109,7 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                         r_TstarU_restriction = NULL, k_restriction = NULL,
                         n_draws = 5000) {
 
-  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
-                                n_draws)
+  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls, n_draws)
   n_draws <- n_draws + 1 # adding average draw at the end.
   obs_draws <- rbind(obs_draws, lapply(obs_draws, mean)) # making final row the mean of observables
   unrestricted_bounds <- get_bounds_unrest(obs_draws)

@@ -157,11 +157,20 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
     posterior <- draw_posterior(y_name, T_name, z_name, data, controls,
                                 r_TstarU_restriction[i, ], k_restriction[i, ],
                                 n_RF_draws, n_IS_draws, resample)
-    bayes <- summarize_posterior(posterior)
+    if (binary) {
+      bayes <- summarize_posterior_binary(posterior, p)
+    } else {
+      bayes <- summarize_posterior(posterior)
+    }
 
     # Compute covering beta interval
-    beta_center <- bounds$beta_center
-    beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
+    if (binary) {
+      beta_center <- get_beta_bounds_binary(apply(posterior$observables, 2, mean), p)
+      beta_bounds <- get_beta_bounds_binary(posterior$observables, p)
+    } else {
+      beta_center <- bounds$beta_center
+      beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
+    }
     beta_interval <- getInterval(beta_bounds, beta_center)
 
     # Compute covering r_uz interval
