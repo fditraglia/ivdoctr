@@ -44,8 +44,11 @@ b_functionA3 <- function(kappa, obs_draws, p) {
 #'
 get_beta_bounds_binary <- function(obs_draws, p) {
   L <- get_L(obs_draws)
-  kappas <- matrix(seq(L, 1, by = 0.0001), ncol = 1)
-  vals <- apply(kappas, 1, b_functionA3, obs_draws = obs_draws, p = p)
+  for (i in 1:length(L)) {
+    kappas <- matrix(seq(L[i], 1, by = 0.0001), ncol = 1)
+    vals <- apply(kappas, 1, b_functionA3, obs_draws = obs_draws, p = p)
+
+  }
   ans <- c(min(vals), max(vals))
   return(ans)
 }

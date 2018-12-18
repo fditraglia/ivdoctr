@@ -57,7 +57,7 @@ make_I <- function(stats, example_name) {
   est <- make_tex_row(c(example_name, est))
   se <- with(stats, sapply(c(se_OLS, se_IV), format_se))
   se <- make_tex_row(se, shift = 1)
-  paste(est, se, sep = '\\ ')
+  paste(est, se)
 }
 
 #' Takes frequentist or Bayesian simulations of beta and instrument validity
@@ -78,13 +78,13 @@ make_II_III <- function(stats, prior_name) {
                                       beta_bayes_lower_bound, beta_bayes_upper_bound),
                                     ncol = 2, byrow = TRUE), 1, format_HPDI))
   if (stats$p_empty > 0) {
-    row1 <- paste0("\\hspace{2em}", prior_name,  "&&&&& $0.27$ & - & $[-, -]$ & $[-, -]$ & - & - \\\\")
-    row2 <- paste0("&&&&&&&&& $[-, -]$ & $[-, -]$ \\\\")
+    row1 <- paste0("\\hspace{2em}", prior_name,  "&&&& ", format_est(stats$p_empty), "& - & $[-, -]$ & $[-, -]$ & - & - \\\\")
+    row2 <- paste0("&&&&&&&& $[-, -]$ & $[-, -]$ \\\\")
   } else {
-    row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, ints, medians), shift = 5))
-    row2 <- make_tex_row(HPDIs, shift = 9)
+    row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, ints, medians), shift = 4))
+    row2 <- make_tex_row(HPDIs, shift = 8)
   }
-  paste(row1, row2, sep = '\\ ')
+  paste(row1, row2)
 }
 
 #' Generates table of parameter estimates given user restrictions and data
@@ -198,9 +198,9 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                                         "] \\times [",
                                         r_TstarU_restriction[i, 1], ",",
                                         r_TstarU_restriction[i, 2], "]$"))
-    exampleTex <- paste(exampleTex, newRow, sep = "\\ ")
+    exampleTex <- paste(exampleTex, newRow)
   }
-  output <- paste(headline, exampleTex, sep = "\\ ")
+  output <- paste(headline, exampleTex)
   return(output)
 }
 
@@ -213,8 +213,7 @@ table_header_cts <- function() {
   &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
   &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
   \\cmidrule(lr){2-4}\\cmidrule(lr){5-8}\\cmidrule(lr){9-10}
-  & OLS & IV & L & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & \\beta & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
-  \\\\"
+  & OLS & IV & L & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\"
 }
 
 # Generates header LaTeX code for continuous table
@@ -226,7 +225,7 @@ table_header_bin <- function() {
   &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
   &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
   \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
-  & OLS & IV & \\bar{\\alpha_0} & \\bar{\\alpha_1} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & \\beta & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
+  & OLS & IV & \\bar{\\alpha_0} & \\bar{\\alpha_1} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
   \\\\"
 }
 
