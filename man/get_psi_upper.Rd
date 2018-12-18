@@ -4,10 +4,10 @@
 \alias{get_psi_upper}
 \title{Computes the upper bound of psi for binary data}
 \usage{
-get_psi_upper(draws, p, kappa)
+get_psi_upper(s2_T, p, kappa)
 }
 \arguments{
-\item{draws}{data.frame of observables of simulated data}
+\item{s2_T}{Vector of s2_T draws from observables}
 
 \item{p}{Treatment probability from binary data}
 

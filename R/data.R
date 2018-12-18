@@ -1,3 +1,5 @@
+#' @import data.table
+NULL
 #' Acemoglu, Johnson, and Robinson (2001) Dataset
 #'
 #' @description Cross-country dataset used to construct Table 4 of Acemoglu, Johnson & Robinson (2001).
@@ -26,10 +28,9 @@ if ("colonial.rda" %in% list.files("./data")) {
   # Our example is based on Table 4 of the paper
   download.file("http://economics.mit.edu/files/5136", "./data/colonial.zip")
   unzip("./data/colonial.zip", files = "maketable4.dta", exdir = "./data")
-  colonial <- data.table::setDT(haven::read_dta("./data/maketable4.dta"))
+  colonial <- setDT(haven::read_dta("./data/maketable4.dta"))
   # Use the base sample of countries
-  colonial <- colonial[baseco == 1]
-  colonial[, 'baseco' := NULL]
+  colonial <- colonial[baseco == 1][, "baseco" := NULL]
   # Saving and cleaning up workspace
   save(colonial, file = "./data/colonial.rda", compress = TRUE)
   rm(colonial)
@@ -98,7 +99,7 @@ if ("weber.rda" %in% list.files("./data")) {
   download.file("https://www.cesifo-group.de/dms/ifodoc/iPEHD/Datasets/ipehd_qje2009_data_tables.zip",
                 "./data/weber.zip")
   unzip("./data/weber.zip", files = "ipehd_qje2009_master.dta", exdir = "./data")
-  weber <- data.table::setDT(haven::read_dta("./data/ipehd_qje2009_master.dta"))
+  weber <- setDT(haven::read_dta("./data/ipehd_qje2009_master.dta"))
   # Converting non-ASCII characters to UTF-8 encoding
   enc2utf8(weber$county1871)
   # Saving and cleaning up workspace
@@ -107,99 +108,28 @@ if ("weber.rda" %in% list.files("./data")) {
   system("rm ./data/weber.zip ./data/ipehd_qje2009_master.dta")
 }
 
-#' Blackburn and Neumark (1992) Wage dataset
-#'
-#' @description A subset of Blackburn and Neumark's (1992) dataset provided by
-#' Jeffrey Wooldridge as an example in his introductory econometrics textbook.
-#' The subset contains only observations from 1980.
-#' @format A data frame with 935 rows and 17 variables:
-#' \describe{
-#'    \item{wage}{monthly earnings}
-#'    \item{hours}{average weekly hours}
-#'    \item{IQ}{IQ score}
-#'    \item{KWW}{knowledge of world work score}
-#'    \item{educ}{years of education}
-#'    \item{exper}{years of work experience}
-#'    \item{tenure}{years with current employer}
-#'    \item{age}{age in years}
-#'    \item{age_sq}{age in years squared}
-#'    \item{married}{=1 if married}
-#'    \item{black}{=1 if black}
-#'    \item{south}{=1 if live in south}
-#'    \item{urban}{=1 if live in SMSA}
-#'    \item{sibs}{number of siblings}
-#'    \item{brthord}{birth order}
-#'    \item{meduc}{mother's education}
-#'    \item{feduc}{father's education}
-#'    \item{lwage}{natural log of wage}
-#' }
-#' @source \url{http://www.cengage.com/aise/economics/wooldridge_3e_datasets/}
-#' @references \url{http://qje.oxfordjournals.org/content/107/4/1421.full.pdf+html}
-"wage2"
-
-if ("wage2.rda" %in% list.files("./data")) {
-} else {
-  download.file("http://www.cengage.com/aise/economics/wooldridge_3e_datasets/textfiles.ZIP",
-                "./data/wooldridge.zip")
-  unzip("./data/wooldridge.zip", files = c("WAGE2.raw", "WAGE2.DES"), exdir = "./data")
-  wage2 <- data.table::fread("./data/WAGE2.raw")
-  # The column names are explained in WAGE2.DES
-  data.table::setnames(wage2, c("wage", "hours", "IQ", "KWW", "educ", "exper",
-                                "tenure", "age", "married", "black", "south",
-                                "urban", "sibs", "brthord", "meduc", "feduc", "lwage"))
-  # Create age-squared for non-linear earnings profile
-  wage2[, 'age_sq' := age ^ 2]
-  # Saving and cleaning up workspace
-  save(wage2, file = "./data/wage2.rda", compress = TRUE)
-  rm(wage2)
-  system("rm ./data/wooldridge.zip ./data/WAGE2.DES ./data/WAGE2.raw")
-}
-
 #' Burde and Linden (2013, AEJ Applied) Dataset
 #'
 #' @description Replicates IV using controls from Table 2
 #' @format A data frame with ??? rows and ??? variables:
 #' \describe{
-#'    \item{hhid07}{Household ID 2007}
+#'    \item{enrolled}{Indicator if child is enrolled in formal school. Outcome.}
+#'    \item{testscore}{Normalized test score}
+#'    \item{buildschool}{Indicator if village is treated. Instrument.}
 #'    \item{headchild}{Indicator if child is child of head of household}
+#'    \item{nhh}{Number of household members}
 #'    \item{female}{Female indicator}
 #'    \item{age}{Child's age}
 #'    \item{yrsvill}{Time family has lived in village}
-#'    \item{agehead}{Head of household age}
-#'    \item{educhead}{Years of education for head of household}
-#'    \item{nhh}{Number of household members}
-#'    \item{land}{Number of jeribs of land owned}
-#'    \item{sheep}{Number of sheep and goats owned}
 #'    \item{farsi}{Indicator for speaking Farsi}
 #'    \item{tajik}{Indicator for speaking Tajik}
 #'    \item{farmers}{Indicator for if head of household is a farmer}
-#'    \item{test_ind}{Indicator if child took survey test}
-#'    \item{headchild07}{Indicator if child is child of head of household}
-#'    \item{female07}{Female indicator}
-#'    \item{age07}{Child's age}
-#'    \item{agehead07}{Head of household age}
-#'    \item{educhead07}{Years of education for head of household}
-#'    \item{land07}{Number of jeribs of land owned}
-#'    \item{sheep07}{Number of sheep and goats owned}
-#'    \item{yrsvill07}{Time family has lived in village}
-#'    \item{farsi07}{Indicator for speaking Farsi}
-#'    \item{tajik07}{Indicator for speaking Tajik}
-#'    \item{farmers07}{Indicator for if head of household is a farmer}
-#'    \item{nhh07}{Number of household members}
-#'    \item{test_ind07}{Indicator if child took survey test}
-#'    \item{obs07}{Indicator if child is observed}
-#'    \item{obs}{Indicator if child is observed}
-#'    \item{buildschool}{Indicator if village is treated. Instrument.}
-#'    \item{c}{Village group ID for clustering}
+#'    \item{land}{Number of jeribs of land owned}
+#'    \item{agehead}{Head of household age}
+#'    \item{educhead}{Years of education for head of household}
+#'    \item{sheep}{Number of sheep and goats owned}
 #'    \item{chagcharan}{Indicator if village is in Chagcharan district}
-#'    \item{enrolled07}{Indicator if child is enrolled in formal school. Treatment.}
-#'    \item{enrolled}{Indicator if child is enrolled in formal school. Outcome.}
-#'    \item{distschool07}{Distance to nearest non-community based school}
 #'    \item{distschool}{Distance to nearest non-community based school}
-#'    \item{testscore07}{Normalized test score}
-#'    \item{testscore}{Normalized test score}
-#'    \item{hhid}{Household ID}
-#'    \item{childid}{Child ID}
 #' }
 #' @source Provided by author.
 #' @references \url{http://www.jstor.org/stable/3083335}
@@ -211,18 +141,16 @@ if ("afghan.rda" %in% list.files("./data")) {
                 "./data/afghan.zip")
   unzip("./data/afghan.zip", exdir = "./data", junkpaths = TRUE,
         files = "Data_20120252 2015-06-15/afghanistan_anonymized_data.dta")
-  afghan <- data.table::setDT(haven::read_dta("./data/afghanistan_anonymized_data.dta"))
+  afghan <- setDT(haven::read_dta("./data/afghanistan_anonymized_data.dta"))
 
-  data.table::setnames(afghan, c("hhid07", "headchild", "female", "age", "yrsvill",
-                                 "agehead", "educhead", "nhh", "land", "sheep",
-                                 "farsi", "tajik", "farmers", "test_ind",
-                                 "headchild07", "female07", "age07", "agehead07",
-                                 "educhead07", "land07", "sheep07", "yrsvill07",
-                                 "farsi07", "tajik07", "farmers07", "nhh07",
-                                 "test_ind07", "obs07", "obs", "buildschool", "c",
-                                 "chagcharan", "enrolled07", "enrolled",
-                                 "distschool07", "distschool", "testscore07",
-                                 "testscore", "hhid", "childid"))
+  setnames(afghan, c("hhid07", "headchild", "female", "age", "yrsvill", "agehead",
+                     "educhead", "nhh", "land", "sheep", "farsi", "tajik",
+                     "farmers", "test_ind", "headchild07", "female07", "age07",
+                     "agehead07", "educhead07", "land07", "sheep07", "yrsvill07",
+                     "farsi07", "tajik07", "farmers07", "nhh07", "test_ind07",
+                     "obs07", "obs", "buildschool", "c", "chagcharan",
+                     "enrolled07", "enrolled", "distschool07", "distschool",
+                     "testscore07", "testscore", "hhid", "childid"))
 
   # Remove outliers following the authors' STATA code
   outlier <- with(afghan, (nhh07 > 20 & obs07 == 1) |
@@ -231,12 +159,11 @@ if ("afghan.rda" %in% list.files("./data")) {
                     (nhh > 20 & obs == 1) |
                     (land > 10 & obs == 1) |
                     (sheep > 50 & obs == 1))
-  afghan <- afghan[!outlier]
-
-  # remove missing observations
+  afghan <- afghan[!outlier, .(enrolled, testscore, buildschool, headchild, nhh,
+                               female, age, yrsvill, farsi, tajik, farmers, land,
+                               agehead, educhead, sheep, distschool, chagcharan)]
+  # Remove missing and subset to girls
   afghan <- na.omit(afghan)
-
-  # only look at girls
   afghan <- subset(afghan, female == 1)
   save(afghan, file = "./data/afghan.rda", compress = TRUE)
   system("rm ./data/afghan.zip ./data/*.dta")

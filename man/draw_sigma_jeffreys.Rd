@@ -4,7 +4,7 @@
 \alias{draw_sigma_jeffreys}
 \title{Draws covariance matrix using the Jeffrey's Prior}
 \usage{
-draw_sigma_jeffreys(y, Tobs, z, n_draws)
+draw_sigma_jeffreys(y, Tobs, z, k, n_draws)
 }
 \arguments{
 \item{y}{Vector of dependent variable}
@@ -12,6 +12,8 @@ draw_sigma_jeffreys(y, Tobs, z, n_draws)
 \item{Tobs}{Matrix containing data for the preferred regressor}
 
 \item{z}{Matrix containing data for the instrumental variable}
+
+\item{k}{Number of covariates, including the intercept}
 
 \item{n_draws}{Integer number of draws to perform}
 }

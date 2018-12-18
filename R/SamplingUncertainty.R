@@ -1,6 +1,6 @@
 #' @import stats
 #' @importFrom MASS mvrnorm
-#' @importFrom utils head
+#' @importFrom utils head tail
 NULL
 
 #' Draws covariance matrix using the Jeffrey's Prior
@@ -9,12 +9,14 @@ NULL
 #' @param Tobs Matrix containing data for the preferred regressor
 #' @param z Matrix containing data for the instrumental variable
 #' @param n_draws Integer number of draws to perform
+#' @param k Number of covariates, including the intercept
 #'
 #' @return Array of covariance matrix draws
-draw_sigma_jeffreys <- function(y, Tobs, z, n_draws) {
+draw_sigma_jeffreys <- function(y, Tobs, z, k, n_draws) {
   n <- length(y)
+  v <- n - k + 3 + 1
   S <- (n - 1) * cov(cbind(Tobs, y, z))
-  Sigma_draws <- rinvwish(n_draws, n - 1, S)
+  Sigma_draws <- rinvwish(n_draws, v, S)
   rownames(Sigma_draws) <- colnames(Sigma_draws) <- c("Tobs", "y", "z")
   return(Sigma_draws)
 }
@@ -52,8 +54,8 @@ draw_observables <- function(y_name, T_name, z_name, data, controls = NULL,
     T_Rsq <- z_Rsq <- 0 # No controls is the same as controls that are
                         # uncorrelated with both Tobs and z
   }
-
-  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, n_draws)
+  k <- length(controls) + 1
+  Sigma_draws <- draw_sigma_jeffreys(y, Tobs, z, k, n_draws)
   not_positive_definite <- rep(FALSE, n_draws)
 
   s2_T <- Sigma_draws["Tobs", "Tobs", ]
@@ -107,8 +109,7 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
                         r_TstarU_restriction = NULL, k_restriction = NULL,
                         n_draws = 5000) {
 
-  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls,
-                                n_draws)
+  obs_draws <- draw_observables(y_name, T_name, z_name, data, controls, n_draws)
   n_draws <- n_draws + 1 # adding average draw at the end.
   obs_draws <- rbind(obs_draws, lapply(obs_draws, mean)) # making final row the mean of observables
   unrestricted_bounds <- get_bounds_unrest(obs_draws)
@@ -170,7 +171,8 @@ draw_bounds <- function(y_name, T_name, z_name, data, controls = NULL,
        r_TstarU_restriction = r_TstarU_restriction,
        restricted = restricted,
        not_positive_definite = head(obs_draws$not_positive_definite, 1),
-       center = c(beta_lower[length(beta_lower)], beta_upper[length(beta_upper)])) # Adding avg beta lower and upper for interval coverage
+       beta_center = c(tail(beta_lower, 1), tail(beta_upper, 1)), # Adding avg beta lower and upper for interval coverage
+       r_uz_center = c(tail(r_uz_restricted$min, 1), tail(r_uz_restricted$max, 1)))
 }
 
 draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
