@@ -226,7 +226,6 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
   posterior_draws <- as.data.frame(posterior_draws)
 
   list(observables = obs_draws,
-       empty = empty,
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
        posterior = posterior_draws,

@@ -62,11 +62,8 @@ summarize_bounds <- function(draws) {
 summarize_posterior <- function(draws) {
   HPDI <- with(draws$posterior, rbind(r_uz = get_HPDI(r_uz),
                                       beta = get_HPDI(beta)))
-  p_valid <- get_p_valid(draws)
   list(r_TstarU_restriction = draws$r_TstarU_restriction,
        k_restriction = draws$k_restriction,
-       p_empty = mean(draws$empty),
-       p_valid = p_valid,
        HPDI = HPDI)
 }
 
@@ -81,7 +78,9 @@ summarize_posterior_binary <- function(draws, p) {
   new_beta <- draws$posterior$beta * (1 + psi_draw)
   HPDI <- with(draws$posterior, rbind(r_uz = get_HPDI(r_uz),
                                       beta = get_HPDI(new_beta)))
-  return(HPDI)
+  list(r_TstarU_restriction = draws$r_TstarU_restriction,
+       k_restriction = draws$k_restriction,
+       HPDI = HPDI)
 }
 
 # Generates plot for a given restriction on r_TstarU and kappa
