@@ -4,14 +4,14 @@
 \alias{b_functionA3}
 \title{B function from Proposition A3}
 \usage{
-b_functionA3(kappa, obs_draws, p)
+b_functionA3(obs_draws, g, psi)
 }
 \arguments{
-\item{kappa}{Kappa value}
-
 \item{obs_draws}{Row of the data.frame of observable draws}
 
-\item{p}{Treatment probability from data}
+\item{g}{Value from g function}
+
+\item{psi}{Psi value}
 }
 \value{
 A min and a max of the B function

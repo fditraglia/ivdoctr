@@ -17,20 +17,16 @@ g_functionA2 <- function(kappa, r_TstarU, obs_draws) {
 
 #' B function from Proposition A3
 #'
-#' @param kappa Kappa value
 #' @param obs_draws Row of the data.frame of observable draws
-#' @param p Treatment probability from data
+#' @param g Value from g function
+#' @param psi Psi value
 #'
 #' @return A min and a max of the B function
 #' @export
 #'
-b_functionA3 <- function(kappa, obs_draws, p) {
-  g_bounds <- g_functionA2(kappa, c(-1, 1), obs_draws)
-  psi_bounds <- c(get_psi_lower(obs_draws$s2_T, p, kappa),
-                  get_psi_upper(obs_draws$s2_T, p, kappa))
-  B_args <- expand.grid(g = g_bounds, psi = psi_bounds)
-  B_vals <- with(B_args, (1 + psi) * (s_zy / s_Tz - g))
-  ans <- c(min(B_vals), max(B_vals))
+b_functionA3 <- function(obs_draws, g, psi) {
+  vals <- with(obs_draws, (1 + psi) * (s_zy / s_Tz - g))
+  ans <- cbind(beta_lower = min(vals), beta_upper = max(vals))
   return(ans)
 }
 
@@ -38,17 +34,25 @@ b_functionA3 <- function(kappa, obs_draws, p) {
 #'
 #' @param obs_draws Row of the data.frame of observable draws
 #' @param p Treatment probability from data
+#' @param r_TstarU_restriction 2-element vector of restrictions on r_TstarU
 #'
 #' @return Min and max values for beta
 #' @export
 #'
-get_beta_bounds_binary <- function(obs_draws, p) {
+get_beta_bounds_binary <- function(obs_draws, p, r_TstarU_restriction) {
   L <- get_L(obs_draws)
+  beta_bounds <- NULL
   for (i in 1:length(L)) {
-    kappas <- matrix(seq(L[i], 1, by = 0.0001), ncol = 1)
-    vals <- apply(kappas, 1, b_functionA3, obs_draws = obs_draws, p = p)
-
+    kappas <- matrix(seq(L[i], 1, length.out = 100), ncol = 1)
+    psi_lower <- get_psi_lower(obs_draws$s2_T[i], p, kappas)
+    psi_upper <- get_psi_upper(obs_draws$s2_T[i], p, kappas)
+    psi <- c(psi_lower, psi_upper)
+    g_1 <- g_functionA2(kappas, r_TstarU_restriction[1], obs_draws[i, ])
+    g_2 <- g_functionA2(kappas, r_TstarU_restriction[2], obs_draws[i, ])
+    g_val <- c(g_1, g_2)
+    inputs <- expand.grid(psi = psi, g = g_val)
+    beta_bounds <- rbind(beta_bounds,
+                         b_functionA3(obs_draws = obs_draws, g = inputs$g, psi = inputs$psi))
   }
-  ans <- c(min(vals), max(vals))
-  return(ans)
+  return(beta_bounds)
 }
