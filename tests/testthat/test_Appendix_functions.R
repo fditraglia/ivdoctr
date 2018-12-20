@@ -6,7 +6,10 @@ test_that("g_functionA2 properly computes value", {
   obs_draws <- data.frame(r_Tz = 1,
                           r_Ty = 1,
                           r_zy = 1,
-                          s2_y = 1)
+                          s2_y = 1,
+                          s2_y = 1,
+                          s2_z = 1,
+                          s_Tz = 1)
   expected_answer <- 0
   ans <- g_functionA2(kappa, r_TstarU, obs_draws)
   expect_equal(expected_answer, ans)
@@ -18,7 +21,10 @@ test_that("g_functionA2 properly computes value", {
   obs_draws <- data.frame(r_Tz = 1,
                           r_Ty = 1,
                           r_zy = 1,
-                          s2_y = 0.5)
+                          s2_y = 0.5,
+                          s2_y = 1,
+                          s2_z = 1,
+                          s_Tz = 1)
   expected_answer <- 0
   ans <- g_functionA2(kappa, r_TstarU, obs_draws)
   expect_equal(expected_answer, ans)
@@ -30,7 +36,10 @@ test_that("g_functionA2 properly computes value", {
   obs_draws <- data.frame(r_Tz = 1,
                           r_Ty = 1,
                           r_zy = 0,
-                          s2_y = 1)
+                          s2_y = 1,
+                          s2_y = 1,
+                          s2_z = 1,
+                          s_Tz = 1)
   expected_answer <- -1
   ans <- g_functionA2(kappa, r_TstarU, obs_draws)
   expect_equal(expected_answer, ans)
@@ -42,7 +51,10 @@ test_that("g_functionA2 properly computes value (Vectorized over kappas)", {
   obs_draws <- data.frame(r_Tz = 1,
                           r_Ty = 1,
                           r_zy = 1,
-                          s2_y = 1)
+                          s2_y = 1,
+                          s2_y = 1,
+                          s2_z = 1,
+                          s_Tz = 1)
   expected_answer <- rep(0, 10)
   ans <- g_functionA2(kappa, r_TstarU, obs_draws)
   expect_equal(expected_answer, ans)
