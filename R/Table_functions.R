@@ -176,8 +176,10 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
     # Compute covering beta interval
     if (binary) {
       mean_obs <- as.data.table(posterior$observables)[, lapply(.SD, mean)]
-      beta_center <- get_beta_bounds_binary(mean_obs, p, r_TstarU_restriction)
-      beta_bounds <- get_beta_bounds_binary(posterior$observables, p, r_TstarU_restriction)
+      #beta_center <- get_beta_bounds_binary(mean_obs, p, r_TstarU_restriction)
+      #beta_bounds <- get_beta_bounds_binary(posterior$observables, p, r_TstarU_restriction)
+      beta_bounds <- get_beta_bounds_binary_post(posterior, n_RF_draws)
+      beta_center <- c(mean(beta_bounds[, 1]), mean(beta_bounds[, 2]))
     } else {
       beta_center <- bounds$beta_center
       beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
