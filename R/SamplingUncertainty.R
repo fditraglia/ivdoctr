@@ -247,10 +247,10 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
   beta_centers <- get_beta(r_TstarU, k_tilde, obs)
   beta_center <- c(min(beta_centers), max(beta_centers))
 
-   list(observables = obs_draws,
-        k_restriction = k_restriction,
-        r_TstarU_restriction = r_TstarU_restriction,
-        posterior = posterior_draws,
-        not_positive_definite = obs_draws$not_positive_definite,
-        beta_center = beta_center)
+  list(observables = obs_draws,
+       k_restriction = k_restriction,
+       r_TstarU_restriction = r_TstarU_restriction,
+       posterior = posterior_draws,
+       not_positive_definite = obs_draws$not_positive_definite,
+       beta_center = beta_center)
 }
