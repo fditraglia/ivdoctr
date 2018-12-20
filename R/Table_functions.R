@@ -203,7 +203,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                   r_uz_upper_bound = bayes$HPDI$upper[1],
                   beta_bayes_upper_bound = bayes$HPDI$upper[2],
                   binary = binary)
-    newRow <- make_II_III(stats, paste0("$(\\kappa, \\rho_{T^*u}) \\in (",
+    newRow <- make_II_III(stats, paste0("$(\\kappa, \\rho_{u\\xi^*}) \\in (",
                                         ifelse(k_restriction[i, 1] < 0.01,
                                                0, k_restriction[i, 1]), ",",
                                         k_restriction[i, 2],
@@ -222,10 +222,10 @@ table_header_cts <- function() {
   \\hline
   \\hline
   &\\multicolumn{3}{c}{(I) Summary Statistics}
-  &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
-  &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
+  &\\multicolumn{4}{c}{(II) Inference for $\\Theta$}
+  &\\multicolumn{2}{c}{(III) Inference for $\\theta$} \\\\
   \\cmidrule(lr){2-4}\\cmidrule(lr){5-8}\\cmidrule(lr){9-10}
-  & OLS & IV & L & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\"
+  & OLS & IV & $L$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta}$ & $\\beta$ & $\\rho_{u \\zeta}$ & $\\beta$ \\\\"
 }
 
 # Generates header LaTeX code for continuous table
@@ -234,10 +234,10 @@ table_header_bin <- function() {
   \\hline
   \\hline
   &\\multicolumn{4}{c}{(I) Summary Statistics}
-  &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
-  &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
+  &\\multicolumn{4}{c}{(II) Inference for $\\Theta$}
+  &\\multicolumn{2}{c}{(III) Inference for $\\theta$} \\\\
   \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
-  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
+  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta}$ & $\\beta$ & $\\rho_{u \\zeta}$ & $\\beta$ \\\\
   \\\\"
 }
 
