@@ -77,12 +77,23 @@ make_II_III <- function(stats, prior_name) {
   HPDIs <- with(stats, apply(matrix(c(r_uz_lower_bound, r_uz_upper_bound,
                                       beta_bayes_lower_bound, beta_bayes_upper_bound),
                                     ncol = 2, byrow = TRUE), 1, format_HPDI))
-  if (stats$p_empty > 0) {
-    row1 <- paste0("\\hspace{2em}", prior_name,  "&&&& ", format_est(stats$p_empty), "& - & $[-, -]$ & $[-, -]$ & - & - \\\\")
-    row2 <- paste0("&&&&&&&& $[-, -]$ & $[-, -]$ \\\\")
+  if (stats$binary) {
+    shiftVal1 <- 5
+    shiftVal2 <- 9
+    shiftTex1 <- "&&&&& "
+    shiftTex2 <- "&&&&&&&&& "
   } else {
-    row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, ints, medians), shift = 4))
-    row2 <- make_tex_row(HPDIs, shift = 8)
+    shiftVal1 <- 4
+    shiftVal2 <- 8
+    shiftTex1 <- "&&&& "
+    shiftTex2 <- "&&&&&&&& "
+  }
+  if (stats$p_empty > 0) {
+    row1 <- paste0("\\hspace{2em}", prior_name,  shiftTex1, format_est(stats$p_empty), "& - & $[-, -]$ & $[-, -]$ & - & - \\\\")
+    row2 <- paste0(shiftTex2, "$[-, -]$ & $[-, -]$ \\\\")
+  } else {
+    row1 <- paste('\\hspace{2em}', prior_name, make_tex_row(c(probs, ints, medians), shift = shiftVal1))
+    row2 <- make_tex_row(HPDIs, shift = shiftVal2)
   }
   paste(row1, row2)
 }
@@ -151,8 +162,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   exampleTex <- NULL
   for (i in 1:nExamples) {
     bounds <- draw_bounds(y_name, T_name, z_name, data, controls,
-                          r_TstarU_restriction[i, ], k_restriction[i, ],
-                          n_draws)
+                          r_TstarU_restriction[i, ], k_restriction[i, ], n_draws)
     freq <- summarize_bounds(bounds)
     posterior <- draw_posterior(y_name, T_name, z_name, data, controls,
                                 r_TstarU_restriction[i, ], k_restriction[i, ],
@@ -165,8 +175,9 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
 
     # Compute covering beta interval
     if (binary) {
-      beta_center <- get_beta_bounds_binary(apply(posterior$observables, 2, mean), p)
-      beta_bounds <- get_beta_bounds_binary(posterior$observables, p)
+      mean_obs <- as.data.table(posterior$observables)[, lapply(.SD, mean)]
+      beta_center <- get_beta_bounds_binary(mean_obs, p, r_TstarU_restriction)
+      beta_bounds <- get_beta_bounds_binary(posterior$observables, p, r_TstarU_restriction)
     } else {
       beta_center <- bounds$beta_center
       beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
@@ -190,7 +201,8 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                   r_uz_lower_bound = bayes$HPDI$lower[1],
                   beta_bayes_lower_bound = bayes$HPDI$lower[2],
                   r_uz_upper_bound = bayes$HPDI$upper[1],
-                  beta_bayes_upper_bound = bayes$HPDI$upper[2])
+                  beta_bayes_upper_bound = bayes$HPDI$upper[2],
+                  binary = binary)
     newRow <- make_II_III(stats, paste0("$(\\kappa, \\rho_{T^*u}) \\in (",
                                         ifelse(k_restriction[i, 1] < 0.01,
                                                0, k_restriction[i, 1]), ",",
@@ -225,7 +237,7 @@ table_header_bin <- function() {
   &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
   &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
   \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
-  & OLS & IV & \\bar{\\alpha_0} & \\bar{\\alpha_1} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
+  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
   \\\\"
 }
 

@@ -4,7 +4,7 @@
 \name{afghan}
 \alias{afghan}
 \title{Burde and Linden (2013, AEJ Applied) Dataset}
-\format{A data frame with ??? rows and ??? variables:
+\format{A data frame with 687 rows and 17 variables:
 \describe{
    \item{enrolled}{Indicator if child is enrolled in formal school. Outcome.}
    \item{testscore}{Normalized test score}

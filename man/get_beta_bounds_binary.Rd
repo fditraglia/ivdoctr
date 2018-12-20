@@ -4,12 +4,14 @@
 \alias{get_beta_bounds_binary}
 \title{Returns beta bounds in binary case using grid search}
 \usage{
-get_beta_bounds_binary(obs_draws, p)
+get_beta_bounds_binary(obs_draws, p, r_TstarU_restriction)
 }
 \arguments{
 \item{obs_draws}{Row of the data.frame of observable draws}
 
 \item{p}{Treatment probability from data}
+
+\item{r_TstarU_restriction}{2-element vector of restrictions on r_TstarU}
 }
 \value{
 Min and max values for beta
