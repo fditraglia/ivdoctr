@@ -235,10 +235,10 @@ table_header_bin <- function() {
   \\hline
   \\hline
   &\\multicolumn{5}{c}{(I) Summary Statistics}
-  &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
-  &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
+  &\\multicolumn{4}{c}{(II) Inference for $\\Theta$}
+  &\\multicolumn{2}{c}{(III) Inference for $\\theta$} \\\\
   \\cmidrule(lr){2-6}\\cmidrule(lr){7-10}\\cmidrule(lr){11-12}
-  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & \\underbar{$\\psi$} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
+  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & \\underbar{$\\psi$} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta}$ & $\\beta$ & $\\rho_{u \\zeta}$ & $\\beta$ \\\\
   \\\\"
 }
 
