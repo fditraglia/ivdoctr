@@ -181,7 +181,6 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
                            resample = FALSE) {
 
   obs_draws <- draw_observables(y_name, T_name, z_name, data, controls, n_RF_draws)
-
   k_tilde_lower <- get_bounds_unrest(obs_draws)$k_tilde$Lower
   k_min <- pmax(min(k_restriction), k_tilde_lower)
   k_max <- rep(min(max(k_restriction), 1), n_RF_draws)
@@ -225,9 +224,32 @@ draw_posterior <- function(y_name, T_name, z_name, data, controls = NULL,
   colnames(posterior_draws) <- c("r_TstarU", "k", "r_uz", "s_u", "beta")
   posterior_draws <- as.data.frame(posterior_draws)
 
+  # Getting beta center
+  mean_obs <- lapply(obs_draws, mean) # Adding mean obs_draws for centering
+  k_tilde_lower <- get_bounds_unrest(mean_obs)$k_tilde$Lower
+  k_min <- pmax(min(k_restriction), k_tilde_lower)
+  k_max <- rep(min(max(k_restriction), 1), n_RF_draws)
+
+  r_TstarU_min <- rep(min(r_TstarU_restriction), n_RF_draws)
+  r_TstarU_max <- rep(max(r_TstarU_restriction), n_RF_draws)
+  k_tilde <- runif(n_IS_draws, k_min, k_max)
+  r_TstarU <- runif(n_IS_draws, r_TstarU_min, r_TstarU_max)
+
+  if (resample) {
+    M <- get_M(r_TstarU, k_tilde, obs)
+    # Note: weights for sample need *not* sum to one
+    random_indices <- sample(seq_len(n_IS_draws), size = n_IS_draws,
+                             replace = TRUE, prob = M / max(M))
+    k_tilde <- k_tilde[random_indices]
+    r_TstarU <- r_TstarU[random_indices]
+  }
+  beta_centers <- get_beta(r_TstarU, k_tilde, obs)
+  beta_center <- c(min(beta_centers), max(beta_centers))
+
   list(observables = obs_draws,
        k_restriction = k_restriction,
        r_TstarU_restriction = r_TstarU_restriction,
        posterior = posterior_draws,
-       not_positive_definite = obs_draws$not_positive_definite)
+       not_positive_definite = obs_draws$not_positive_definite,
+       beta_center = beta_center)
 }

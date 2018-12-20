@@ -64,7 +64,7 @@ get_beta_bounds_binary <- function(obs_draws, p, r_TstarU_restriction) {
 #' @param draws Posterior draws
 #' @param n_observables Number of observable draws
 #'
-#' @return
+#' @return Upper and lower bounds of beta based on posterior draws
 #' @export
 #'
 get_beta_bounds_binary_post <- function(draws, n_observables) {

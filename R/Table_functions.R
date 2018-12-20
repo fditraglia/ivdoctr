@@ -50,7 +50,7 @@ make_tex_row <- function(char_vec, shift = 0) {
 make_I <- function(stats, example_name) {
   example_name <- paste(example_name, paste0('($n=', stats$n, '$)'))
   if (stats$binary == 1) {
-    est <- with(stats, sapply(c(b_OLS, b_IV, a0, a1), format_est))
+    est <- with(stats, sapply(c(b_OLS, b_IV, a0, a1, psi_lower), format_est))
   } else {
     est <- with(stats, sapply(c(b_OLS, b_IV, k_lower), format_est))
   }
@@ -78,10 +78,10 @@ make_II_III <- function(stats, prior_name) {
                                       beta_bayes_lower_bound, beta_bayes_upper_bound),
                                     ncol = 2, byrow = TRUE), 1, format_HPDI))
   if (stats$binary) {
-    shiftVal1 <- 5
-    shiftVal2 <- 9
-    shiftTex1 <- "&&&&& "
-    shiftTex2 <- "&&&&&&&&& "
+    shiftVal1 <- 6
+    shiftVal2 <- 10
+    shiftTex1 <- "&&&&&& "
+    shiftTex2 <- "&&&&&&&&&& "
   } else {
     shiftVal1 <- 4
     shiftVal2 <- 8
@@ -144,6 +144,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
   if (binary) {
     p <- mean(data[[T_name]])
     alpha_bounds <- get_alpha_bounds(obs, p)
+    psi_lower <- get_psi_lower(obs$s2_T, p, bounds_unrest$k$Lower)
   } else {
     alpha_bounds <- NULL
   }
@@ -156,6 +157,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                   k_lower = bounds_unrest$k$Lower,
                   a0 = alpha_bounds$a0,
                   a1 = alpha_bounds$a1,
+                  psi_lower = psi_lower,
                   binary = binary)
   headline <- make_I(stats_I, example_name)
   nExamples <- nrow(r_TstarU_restriction)
@@ -175,11 +177,8 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
 
     # Compute covering beta interval
     if (binary) {
-      mean_obs <- as.data.table(posterior$observables)[, lapply(.SD, mean)]
-      #beta_center <- get_beta_bounds_binary(mean_obs, p, r_TstarU_restriction)
-      #beta_bounds <- get_beta_bounds_binary(posterior$observables, p, r_TstarU_restriction)
       beta_bounds <- get_beta_bounds_binary_post(posterior, n_RF_draws)
-      beta_center <- c(mean(beta_bounds[, 1]), mean(beta_bounds[, 2]))
+      beta_center <- posterior$beta_center
     } else {
       beta_center <- bounds$beta_center
       beta_bounds <- cbind(bounds$restricted$beta_lower, bounds$restricted$beta_upper)
@@ -232,14 +231,14 @@ table_header_cts <- function() {
 
 # Generates header LaTeX code for continuous table
 table_header_bin <- function() {
-  "\\begin{tabular}{lcccccccccc}
+  "\\begin{tabular}{lccccccccccc}
   \\hline
   \\hline
-  &\\multicolumn{4}{c}{(I) Summary Statistics}
+  &\\multicolumn{5}{c}{(I) Summary Statistics}
   &\\multicolumn{4}{c}{(II) Frequentist-Friendly}
   &\\multicolumn{2}{c}{(III) Full Bayesian} \\\\
-  \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
-  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
+  \\cmidrule(lr){2-6}\\cmidrule(lr){7-10}\\cmidrule(lr){11-12}
+  & OLS & IV & $\\bar{\\alpha_0}$ & $\\bar{\\alpha_1}$ & \\underbar{$\\psi$} & $\\mathbb{P}(\\varnothing)$ & $\\mathbb{P}(\\mbox{Valid})$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ & $\\rho_{u \\zeta} / \\rho_{u \\zeta ^ *}$ & $\\beta$ \\\\
   \\\\"
 }
 
