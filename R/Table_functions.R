@@ -234,7 +234,7 @@ table_header_bin <- function() {
   "\\begin{tabular}{lccccccccccc}
   \\hline
   \\hline
-    &\\multicolumn{4}{c}{(I) Summary Statistics}
+  &\\multicolumn{4}{c}{(I) Summary Statistics}
   &\\multicolumn{4}{c}{(II) Inference for $\\Theta$}
   &\\multicolumn{2}{c}{(III) Inference for $\\theta$} \\\\
   \\cmidrule(lr){2-5}\\cmidrule(lr){6-9}\\cmidrule(lr){10-11}
