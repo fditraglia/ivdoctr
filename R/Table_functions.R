@@ -147,6 +147,7 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
     psi_lower <- get_psi_lower(obs$s2_T, p, bounds_unrest$k$Lower)
   } else {
     alpha_bounds <- NULL
+    psi_lower <- NULL
   }
 
   stats_I <- list(n = summary_stats$n,
