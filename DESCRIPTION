@@ -16,8 +16,10 @@ Imports:
     AER,
     coda,
     data.table,
+    graphics,
     MASS,
     Rcpp (>= 0.11.6),
+    rgl,
     sandwich,
     stats
 LinkingTo: Rcpp,
