@@ -4,10 +4,22 @@
 \alias{plot_3d_beta}
 \title{Plot ivdoctr Restrictions}
 \usage{
-plot_3d_beta(y_name, T_name, z_name, data, controls = NULL,
-  r_TstarU_restriction = NULL, k_restriction = NULL, n_grid = 30,
-  n_colors = 500, fence = NULL, gray_k = NULL, gray_rTstarU = NULL,
-  theta = 0, phi = 15)
+plot_3d_beta(
+  y_name,
+  T_name,
+  z_name,
+  data,
+  controls = NULL,
+  r_TstarU_restriction = NULL,
+  k_restriction = NULL,
+  n_grid = 30,
+  n_colors = 500,
+  fence = NULL,
+  gray_k = NULL,
+  gray_rTstarU = NULL,
+  theta = 0,
+  phi = 15
+)
 }
 \arguments{
 \item{y_name}{Character string with the column name of the dependent variable}

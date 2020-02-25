@@ -4,8 +4,16 @@
 \alias{draw_bounds}
 \title{Computes bounds for simulated data}
 \usage{
-draw_bounds(y_name, T_name, z_name, data, controls = NULL,
-  r_TstarU_restriction = NULL, k_restriction = NULL, n_draws = 5000)
+draw_bounds(
+  y_name,
+  T_name,
+  z_name,
+  data,
+  controls = NULL,
+  r_TstarU_restriction = NULL,
+  k_restriction = NULL,
+  n_draws = 5000
+)
 }
 \arguments{
 \item{y_name}{Character vector of the name of the dependent variable}

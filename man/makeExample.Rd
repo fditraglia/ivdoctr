@@ -4,10 +4,21 @@
 \alias{makeExample}
 \title{Generates table of parameter estimates given user restrictions and data}
 \usage{
-makeExample(y_name, T_name, z_name, data, controls = NULL,
-  robust = FALSE, r_TstarU_restriction = NULL, k_restriction = NULL,
-  n_draws = 5000, n_RF_draws = 1000, n_IS_draws = 1000,
-  resample = FALSE, example_name)
+makeExample(
+  y_name,
+  T_name,
+  z_name,
+  data,
+  controls = NULL,
+  robust = FALSE,
+  r_TstarU_restriction = NULL,
+  k_restriction = NULL,
+  n_draws = 5000,
+  n_RF_draws = 1000,
+  n_IS_draws = 1000,
+  resample = FALSE,
+  example_name
+)
 }
 \arguments{
 \item{y_name}{Character string with the column name of the dependent variable}

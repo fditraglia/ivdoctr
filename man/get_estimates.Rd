@@ -4,8 +4,7 @@
 \alias{get_estimates}
 \title{Computes OLS and IV estimates}
 \usage{
-get_estimates(y_name, T_name, z_name, data, controls = NULL,
-  robust = FALSE)
+get_estimates(y_name, T_name, z_name, data, controls = NULL, robust = FALSE)
 }
 \arguments{
 \item{y_name}{Character vector of the name of the dependent variable}
