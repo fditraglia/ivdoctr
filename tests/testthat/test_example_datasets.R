@@ -1,14 +1,13 @@
 context("Datasets")
 
 test_that("Replicate Table 4 of Acemoglu et al (2001)", {
-  skip_if_not_installed("sem")
   attach(colonial)
   b <- function(reg) as.numeric(round(coefficients(reg), 2)[2])
   SE <- function(reg) round(summary(reg)$coefficients[2,2], 2)
   OLS1 <- lm(logpgp95 ~ avexpr)
   OLS2 <- lm(logpgp95 ~ avexpr + lat_abst)
-  IV1 <- sem::tsls(logpgp95 ~ avexpr, ~ logem4)
-  IV2 <- sem::tsls(logpgp95 ~ avexpr + lat_abst, ~ logem4 + lat_abst)
+  IV1 <- AER::ivreg(logpgp95 ~ avexpr | logem4)
+  IV2 <- AER::ivreg(logpgp95 ~ avexpr + lat_abst | logem4 + lat_abst)
   detach(colonial)
   expect_equal(0.52, b(OLS1))
   expect_equal(0.06, SE(OLS1))
@@ -21,7 +20,6 @@ test_that("Replicate Table 4 of Acemoglu et al (2001)", {
 })
 
 test_that("Replicate Tables II and III of Becker & Woessman (2009)", {
-  skip_if_not_installed("sem")
   attach(weber)
   b <- function(reg) as.numeric(round(coefficients(reg), 3)[2])
   SE <- function(reg) round(summary(reg)$coefficients[2,2], 3)
@@ -36,7 +34,9 @@ test_that("Replicate Tables II and III of Becker & Woessman (2009)", {
   OLS2 <- lm(second_stage)
   expect_equal(0.099, b(OLS2))
   expect_equal(0.010, SE(OLS2))
-  IV <- sem::tsls(second_stage, first_stage)
+  IV <- AER::ivreg(f_rw ~ f_prot + f_young + f_jew + f_fem + f_ortsgeb + f_pruss +
+                     hhsize + lnpop + gpop + f_miss + f_blind + f_deaf + f_dumb |
+                     . - f_prot + kmwittenberg)
   expect_equal(0.189, b(IV))
   expect_equal(0.028, SE(IV))
   detach(weber)

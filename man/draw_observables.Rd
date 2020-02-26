@@ -4,8 +4,7 @@
 \alias{draw_observables}
 \title{Simulates different data draws}
 \usage{
-draw_observables(y_name, T_name, z_name, data, controls = NULL,
-  n_draws = 5000)
+draw_observables(y_name, T_name, z_name, data, controls = NULL, n_draws = 5000)
 }
 \arguments{
 \item{y_name}{Character vector of the name of the dependent variable}
