@@ -30,7 +30,7 @@ plot_3d_beta <- function(y_name, T_name, z_name, data, controls = NULL,
                          n_grid = 30, n_colors = 500, fence = NULL,
                          gray_k = NULL, gray_rTstarU = NULL,
                          theta = 0, phi = 15) {
-
+  color <- NULL
   obs <- get_observables(y_name, T_name, z_name, data, controls)
 
   if (is.null(r_TstarU_restriction)) {
