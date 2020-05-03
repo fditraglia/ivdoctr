@@ -4,7 +4,8 @@
 \name{afghan}
 \alias{afghan}
 \title{Burde and Linden (2013, AEJ Applied) Dataset}
-\format{A data frame with 687 rows and 17 variables:
+\format{
+A data frame with 687 rows and 17 variables:
 \describe{
    \item{enrolled}{Indicator if child is enrolled in formal school. Outcome.}
    \item{testscore}{Normalized test score}
@@ -23,7 +24,8 @@
    \item{sheep}{Number of sheep and goats owned}
    \item{chagcharan}{Indicator if village is in Chagcharan district}
    \item{distschool}{Distance to nearest non-community based school}
-}}
+}
+}
 \source{
 Provided by author.
 }

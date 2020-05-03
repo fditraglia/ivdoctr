@@ -9,7 +9,7 @@ NULL
 #' @param z_name Character vector of the names of the instrumental variables
 #' @param data Data to be analyzed
 #' @param controls Character vector containing the names of the exogenous regressors
-#' @param robust Boolean of whether to compute heterskedasticity-robust standard errors
+#' @param robust Boolean of whether to compute heteroskedasticity-robust standard errors
 #' @return List of beta estimates and associated standard errors for OLS and
 #'   IV estimation
 get_estimates <- function(y_name, T_name, z_name, data, controls = NULL,

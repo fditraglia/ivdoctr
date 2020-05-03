@@ -4,7 +4,8 @@
 \name{colonial}
 \alias{colonial}
 \title{Acemoglu, Johnson, and Robinson (2001) Dataset}
-\format{A data frame with 64 rows and 9 variables:
+\format{
+A data frame with 64 rows and 9 variables:
 \describe{
    \item{shortnam}{three letter country abbreviation, e.g. AUS for Australia}
    \item{africa}{dummy variable =1 if country is in Africa}
@@ -19,7 +20,8 @@
    \item{logem4}{Natural logarithm of European settler mortality}
    \item{asia}{dummy variable, =1 if country is in Asia}
    \item{loghjypl}{Natural logarithm of output per worker in 1988}
- }}
+ }
+}
 \source{
 \url{http://economics.mit.edu/faculty/acemoglu/data/ajr2001}
 }

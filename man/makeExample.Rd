@@ -33,9 +33,9 @@ makeExample(
 
 \item{robust}{Indicator for heteroskedasticity-robust standard errors}
 
-\item{r_TstarU_restriction}{Matrix of desired mins and maxes for r_TstarU (must be same dimensions as k_restriction)}
+\item{r_TstarU_restriction}{Matrix of desired mins and maxes for r_TstarU (must be same dimensions as k_restriction). If NULL, defaults to [-0.999, 0.999]}
 
-\item{k_restriction}{Matrix of desired minx and maxes for kappa (must be same dimensions as r_TstarU_restriction)}
+\item{k_restriction}{Matrix of desired minx and maxes for kappa (must be same dimensions as r_TstarU_restriction). If NULL, defaults to [0.001, 0.999]}
 
 \item{n_draws}{Number of draws when generating frequentist-friendly draws of the covariance matrix}
 
