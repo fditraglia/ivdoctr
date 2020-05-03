@@ -4,7 +4,8 @@
 \name{weber}
 \alias{weber}
 \title{Becker and Woessmann (2009) Dataset}
-\format{A data frame with 452 rows and 44 variables:
+\format{
+A data frame with 452 rows and 44 variables:
 \describe{
    \item{kreiskey1871}{kreiskey1871}
    \item{county1871}{County name in 1871}
@@ -52,7 +53,8 @@
    \item{ncloisters1517_pkm2}{Monasteries per square kilometer in 1517}
    \item{school1517}{Dummy variable, =1 if school in 1517}
    \item{dnpop1500}{City population in 1500}
- }}
+ }
+}
 \source{
 \url{https://www.cesifo-group.de/ifoHome/facts/iPEHD-Ifo-Prussian-Economic-History-Database/publications.html}
 }

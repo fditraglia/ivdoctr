@@ -106,8 +106,8 @@ make_II_III <- function(stats, prior_name) {
 #' @param data Data frame
 #' @param controls Vector of character strings specifying the exogenous variables
 #' @param robust Indicator for heteroskedasticity-robust standard errors
-#' @param r_TstarU_restriction Matrix of desired mins and maxes for r_TstarU (must be same dimensions as k_restriction)
-#' @param k_restriction Matrix of desired minx and maxes for kappa (must be same dimensions as r_TstarU_restriction)
+#' @param r_TstarU_restriction Matrix of desired mins and maxes for r_TstarU (must be same dimensions as k_restriction). If NULL, defaults to [-0.999, 0.999]
+#' @param k_restriction Matrix of desired minx and maxes for kappa (must be same dimensions as r_TstarU_restriction). If NULL, defaults to [0.001, 0.999]
 #' @param n_draws Number of draws when generating frequentist-friendly draws of the covariance matrix
 #' @param n_RF_draws Number of reduced-form draws
 #' @param n_IS_draws Number of draws on the identified set
@@ -120,10 +120,10 @@ makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                         n_IS_draws = 1000, resample = FALSE, example_name) {
   binary <- ifelse(uniqueN(data[[T_name]]) == 2, 1, 0)
   if (is.null(r_TstarU_restriction)) {
-    r_TstarU_restriction <- matrix(c(-1, 1), nrow = 1)
+    r_TstarU_restriction <- matrix(c(-0.999, 0.999), nrow = 1)
   }
   if (is.null(k_restriction)) {
-    k_restriction <- matrix(c(0, 1), nrow = 1)
+    k_restriction <- matrix(c(0.001, 0.999), nrow = 1)
   }
   if (nrow(r_TstarU_restriction) != nrow(k_restriction)) {
     if (is.null(r_TstarU_restriction)) {
