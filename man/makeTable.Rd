@@ -13,6 +13,9 @@ makeTable(file, binary, ...)
 
 \item{...}{Arguments of TeX code for individual examples to be combined into a single table}
 }
+\value{
+LaTeX code that generates output table with regression results
+}
 \description{
 Generates table of parameter estimates given user restrictions and data
 }

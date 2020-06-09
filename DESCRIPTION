@@ -1,15 +1,16 @@
 Package: ivdoctr
-Title: Ensures Mutually Consistent Beliefs When Using Instrumental Variables
+Title: Ensures Mutually Consistent Beliefs When Using IVs
 Version: 1.0.0
 Authors@R: c(
     person("Frank", "DiTraglia", email = "francis.ditraglia@economics.ox.ac.uk", role = "aut"),
-    person("Camilo", "Garc\'ia-Jimeno", email = "cgarcia@frbchi.org", role = "aut"),
+    person("Camilo", "Garcia-Jimeno", email = "cgarcia@frbchi.org", role = "aut"),
     person("Mallick", "Hossain", email = "emallickhossain@gmail.com", role = c("aut", "cre")), 
     person("Alejandro", "Sanchez Becerra", email = "alesan@sas.upenn.edu", role = "aut"))
 Description: Uses data and researcher's beliefs on measurement error and
-    instrument endogeneity to generate the space of consistent beliefs across
-    measurement error, instrument endogeneity, and instrumental relevance for 
-    IV regressions. Package based on DiTraglia and Garc\'ia-Jimeno (2020) <doi:10.1080/07350015.2020.1753528>.
+    instrumental variable (IV) endogeneity to generate the space of consistent 
+    beliefs across measurement error, instrument endogeneity, and instrumental 
+    relevance for IV regressions. 
+    Package based on DiTraglia and Garcia-Jimeno (2020) <doi:10.1080/07350015.2020.1753528>.
 License: CC0
 LazyData: TRUE
 Depends: R (>= 2.10)

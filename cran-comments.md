@@ -1,5 +1,9 @@
+## Resubmission
+This is a resubmission. In this version I have:
+
+* Removed par(mfrow=c(1,1)) from 3d_plot.R so user options are not changed
+
 ## Test environments
-* local ubuntu 19.10, R 3.6.2
 * local ubuntu 20.04, R 4.0.0
 * win-builder (devel and release)
 

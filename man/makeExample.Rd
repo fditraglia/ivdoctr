@@ -47,6 +47,9 @@ makeExample(
 
 \item{example_name}{Character string describing the example}
 }
+\value{
+LaTeX code to be passed to makeTable() function
+}
 \description{
 Generates table of parameter estimates given user restrictions and data
 }

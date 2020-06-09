@@ -120,7 +120,6 @@ plot_3d_beta <- function(y_name, T_name, z_name, data, controls = NULL,
       my_rect$z <- get_r_uz(my_rect$x, my_rect$y, obs)
       lines3d(my_rect)
     }
-    par(mfrow = c(1, 1))
   }
 }
 

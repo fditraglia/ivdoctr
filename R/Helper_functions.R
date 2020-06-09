@@ -39,7 +39,6 @@ collapse_3d_array <- function(myarray){
 #' @examples
 #' M <- array(c(1, 1, 1, 1, 2, 2, 2, 2), c(2, 2, 2))
 #' toList(M)
-#' @export
 toList <- function(myArray){
   lapply(seq_len(dim(myArray)[3]), function(i) myArray[, , i, drop = TRUE])
 }

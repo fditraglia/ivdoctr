@@ -25,16 +25,19 @@ NULL
 
 if ("colonial.rda" %in% list.files("./data")) {
 } else {
-  # Our example is based on Table 4 of the paper
-  download.file("http://economics.mit.edu/files/5136", "./data/colonial.zip")
-  unzip("./data/colonial.zip", files = "maketable4.dta", exdir = "./data")
-  colonial <- setDT(haven::read_dta("./data/maketable4.dta"))
-  # Use the base sample of countries
-  colonial <- colonial[baseco == 1][, "baseco" := NULL]
-  # Saving and cleaning up workspace
-  save(colonial, file = "./data/colonial.rda", compress = TRUE)
-  rm(colonial)
-  system("rm ./data/colonial.zip ./data/maketable4.dta")
+  print(paste0("Please download data from http://economics.mit.edu/files/5136 ",
+               "and file an issue at https://github.com/fditraglia/ivdoctr/issues",
+               "so that we can fix this problem"))
+  # # Our example is based on Table 4 of the paper
+  # download.file("http://economics.mit.edu/files/5136", "./data/colonial.zip")
+  # unzip("./data/colonial.zip", files = "maketable4.dta", exdir = "./data")
+  # colonial <- setDT(haven::read_dta("./data/maketable4.dta"))
+  # # Use the base sample of countries
+  # colonial <- colonial[baseco == 1][, "baseco" := NULL]
+  # # Saving and cleaning up workspace
+  # save(colonial, file = "./data/colonial.rda", compress = TRUE)
+  # rm(colonial)
+  # system("rm ./data/colonial.zip ./data/maketable4.dta")
 }
 
 #' Becker and Woessmann (2009) Dataset
@@ -96,16 +99,20 @@ if ("colonial.rda" %in% list.files("./data")) {
 
 if ("weber.rda" %in% list.files("./data")) {
 } else {
-  download.file("https://www.cesifo-group.de/dms/ifodoc/iPEHD/Datasets/ipehd_qje2009_data_tables.zip",
-                "./data/weber.zip")
-  unzip("./data/weber.zip", files = "ipehd_qje2009_master.dta", exdir = "./data")
-  weber <- setDT(haven::read_dta("./data/ipehd_qje2009_master.dta"))
-  # Converting non-ASCII characters to UTF-8 encoding
-  enc2utf8(weber$county1871)
-  # Saving and cleaning up workspace
-  save(weber, file = "./data/weber.rda", compress = TRUE)
-  rm(weber)
-  system("rm ./data/weber.zip ./data/ipehd_qje2009_master.dta")
+  print(paste0("Please download data from ",
+               "https://www.cesifo-group.de/dms/ifodoc/iPEHD/Datasets/ipehd_qje2009_data_tables.zip",
+               "and file an issue at https://github.com/fditraglia/ivdoctr/issues",
+               "so that we can fix this problem"))
+  # download.file("https://www.cesifo-group.de/dms/ifodoc/iPEHD/Datasets/ipehd_qje2009_data_tables.zip",
+  #               "./data/weber.zip")
+  # unzip("./data/weber.zip", files = "ipehd_qje2009_master.dta", exdir = "./data")
+  # weber <- setDT(haven::read_dta("./data/ipehd_qje2009_master.dta"))
+  # # Converting non-ASCII characters to UTF-8 encoding
+  # enc2utf8(weber$county1871)
+  # # Saving and cleaning up workspace
+  # save(weber, file = "./data/weber.rda", compress = TRUE)
+  # rm(weber)
+  # system("rm ./data/weber.zip ./data/ipehd_qje2009_master.dta")
 }
 
 #' Burde and Linden (2013, AEJ Applied) Dataset
@@ -137,35 +144,39 @@ if ("weber.rda" %in% list.files("./data")) {
 
 if ("afghan.rda" %in% list.files("./data")) {
 } else {
-  download.file("https://www.aeaweb.org/aej/app/data/2012-0252_data.zip",
-                "./data/afghan.zip")
-  unzip("./data/afghan.zip", exdir = "./data", junkpaths = TRUE,
-        files = "Data_20120252 2015-06-15/afghanistan_anonymized_data.dta")
-  afghan <- setDT(haven::read_dta("./data/afghanistan_anonymized_data.dta"))
-
-  setnames(afghan, c("hhid07", "headchild", "female", "age", "yrsvill", "agehead",
-                     "educhead", "nhh", "land", "sheep", "farsi", "tajik",
-                     "farmers", "test_ind", "headchild07", "female07", "age07",
-                     "agehead07", "educhead07", "land07", "sheep07", "yrsvill07",
-                     "farsi07", "tajik07", "farmers07", "nhh07", "test_ind07",
-                     "obs07", "obs", "buildschool", "c", "chagcharan",
-                     "enrolled07", "enrolled", "distschool07", "distschool",
-                     "testscore07", "testscore", "hhid", "childid"))
-
-  # Remove outliers following the authors' STATA code
-  outlier <- with(afghan, (nhh07 > 20 & obs07 == 1) |
-                    (land07 > 10 & obs07 == 1) |
-                    (sheep07 > 50 & obs07 == 1) |
-                    (nhh > 20 & obs == 1) |
-                    (land > 10 & obs == 1) |
-                    (sheep > 50 & obs == 1))
-  afghan <- afghan[!outlier, .(enrolled, testscore, buildschool, headchild, nhh,
-                               female, age, yrsvill, farsi, tajik, farmers, land,
-                               agehead, educhead, sheep, distschool, chagcharan)]
-  # Remove missing and subset to girls
-  afghan <- na.omit(afghan)
-  afghan <- subset(afghan, female == 1)
-  save(afghan, file = "./data/afghan.rda", compress = TRUE)
-  system("rm ./data/afghan.zip ./data/*.dta")
-  rm(afghan)
+  print(paste0("Please download data from ",
+               "https://www.aeaweb.org/aej/app/data/2012-0252_data.zip",
+               "and file an issue at https://github.com/fditraglia/ivdoctr/issues",
+               "so that we can fix this problem"))
+  # download.file("https://www.aeaweb.org/aej/app/data/2012-0252_data.zip",
+  #               "./data/afghan.zip")
+  # unzip("./data/afghan.zip", exdir = "./data", junkpaths = TRUE,
+  #       files = "Data_20120252 2015-06-15/afghanistan_anonymized_data.dta")
+  # afghan <- setDT(haven::read_dta("./data/afghanistan_anonymized_data.dta"))
+  #
+  # setnames(afghan, c("hhid07", "headchild", "female", "age", "yrsvill", "agehead",
+  #                    "educhead", "nhh", "land", "sheep", "farsi", "tajik",
+  #                    "farmers", "test_ind", "headchild07", "female07", "age07",
+  #                    "agehead07", "educhead07", "land07", "sheep07", "yrsvill07",
+  #                    "farsi07", "tajik07", "farmers07", "nhh07", "test_ind07",
+  #                    "obs07", "obs", "buildschool", "c", "chagcharan",
+  #                    "enrolled07", "enrolled", "distschool07", "distschool",
+  #                    "testscore07", "testscore", "hhid", "childid"))
+  #
+  # # Remove outliers following the authors' STATA code
+  # outlier <- with(afghan, (nhh07 > 20 & obs07 == 1) |
+  #                   (land07 > 10 & obs07 == 1) |
+  #                   (sheep07 > 50 & obs07 == 1) |
+  #                   (nhh > 20 & obs == 1) |
+  #                   (land > 10 & obs == 1) |
+  #                   (sheep > 50 & obs == 1))
+  # afghan <- afghan[!outlier, .(enrolled, testscore, buildschool, headchild, nhh,
+  #                              female, age, yrsvill, farsi, tajik, farmers, land,
+  #                              agehead, educhead, sheep, distschool, chagcharan)]
+  # # Remove missing and subset to girls
+  # afghan <- na.omit(afghan)
+  # afghan <- subset(afghan, female == 1)
+  # save(afghan, file = "./data/afghan.rda", compress = TRUE)
+  # system("rm ./data/afghan.zip ./data/*.dta")
+  # rm(afghan)
 }

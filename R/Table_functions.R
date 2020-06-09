@@ -113,6 +113,7 @@ make_II_III <- function(stats, prior_name) {
 #' @param n_IS_draws Number of draws on the identified set
 #' @param resample Indicator of whether or not to resample using magnification factor
 #' @param example_name Character string describing the example
+#' @return LaTeX code to be passed to makeTable() function
 #' @export
 makeExample <- function(y_name, T_name, z_name, data, controls = NULL,
                         robust = FALSE, r_TstarU_restriction = NULL,
@@ -243,8 +244,7 @@ table_header_bin <- function() {
   \\\\"
 }
 
-#' Generates footer LaTeX code for continuous table
-#'
+# Generates footer LaTeX code for continuous table
 table_footer_fn <- function() {
   "\\hline
   \\end{tabular}"
@@ -255,6 +255,7 @@ table_footer_fn <- function() {
 #' @param file Character string with the path name of the .tex file to be saved
 #' @param ... Arguments of TeX code for individual examples to be combined into a single table
 #' @param binary Indicator for if data is binary
+#' @return LaTeX code that generates output table with regression results
 #'
 #' @export
 makeTable <- function(file, binary, ...) {

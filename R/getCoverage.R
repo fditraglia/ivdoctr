@@ -4,7 +4,6 @@
 #' @param guess 2-element vector of confidence interval
 #'
 #' @return Coverage percentage
-#' @export
 #'
 getCoverage <- function(data, guess) {
   coverage <- (min(guess) <= apply(data, 1, min)) * (max(guess) >= apply(data, 1, max))
@@ -20,7 +19,6 @@ getCoverage <- function(data, guess) {
 #' @param tol Tolerance level for convergence
 #'
 #' @return 2-element vector of confidence interval
-#' @export
 #'
 getInterval <- function(data, center, conf = 0.9, tol = 1e-6) {
   data <- na.omit(data)

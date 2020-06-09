@@ -17,7 +17,7 @@ get_estimates(y_name, T_name, z_name, data, controls = NULL, robust = FALSE)
 
 \item{controls}{Character vector containing the names of the exogenous regressors}
 
-\item{robust}{Boolean of whether to compute heterskedasticity-robust standard errors}
+\item{robust}{Boolean of whether to compute heteroskedasticity-robust standard errors}
 }
 \value{
 List of beta estimates and associated standard errors for OLS and

@@ -4,7 +4,6 @@
 #' @param obs_draws data.frame of draws of reduced form parameters
 #'
 #' @return data.frame of new draws
-#' @export
 #'
 get_new_draws <- function(obs_draws, post_draws) {
   kappa <- post_draws$k

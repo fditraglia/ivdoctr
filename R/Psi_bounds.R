@@ -5,7 +5,6 @@
 #' @param kappa Vector of kappa, NOTE: kappa_tilde in the paper
 #'
 #' @return Vector of upper bounds for psi
-#' @export
 #'
 get_psi_upper <- function(s2_T, p, kappa) {
   ans <- (-s2_T * (1 - kappa)) / max(p, 1 - p)
@@ -19,7 +18,6 @@ get_psi_upper <- function(s2_T, p, kappa) {
 #' @param kappa Vector of kappa, NOTE: kappa_tilde in the paper
 #'
 #' @return Vector of lower bounds for psi
-#' @export
 #'
 get_psi_lower <- function(s2_T, p, kappa) {
   m <- max((1 - p) * (2 * p - 2), p * (1 - 2 * p))
@@ -35,7 +33,6 @@ get_psi_lower <- function(s2_T, p, kappa) {
 #' @param draws data.frame of observables of simulated data
 #'
 #' @return Vector of L values
-#' @export
 #'
 get_L <- function(draws) {
   num <- with(draws, r_Ty ^ 2 + r_Tz ^ 2 - 2 * r_Ty * r_Tz * r_zy)
@@ -50,7 +47,6 @@ get_L <- function(draws) {
 #' @param p Treatment probability from binary data
 #'
 #' @return List of alpha bounds
-#' @export
 #'
 get_alpha_bounds <- function(draws, p) {
   L <- get_L(draws)

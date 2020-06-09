@@ -5,7 +5,6 @@
 #' @param obs_draws a row of the data.frame of observable draws
 #'
 #' @return G value
-#' @export
 #'
 g_functionA2 <- function(kappa, r_TstarU, obs_draws) {
   t1 <- with(obs_draws, sqrt(s2_z) / s_Tz * sqrt(s2_y) / kappa)
@@ -22,7 +21,6 @@ g_functionA2 <- function(kappa, r_TstarU, obs_draws) {
 #' @param psi Psi value
 #'
 #' @return A min and a max of the B function
-#' @export
 #'
 b_functionA3 <- function(obs_draws, g, psi) {
   vals <- with(obs_draws, (1 + psi) * (s_zy / s_Tz - g))
@@ -37,7 +35,6 @@ b_functionA3 <- function(obs_draws, g, psi) {
 #' @param r_TstarU_restriction 2-element vector of restrictions on r_TstarU
 #'
 #' @return Min and max values for beta
-#' @export
 #'
 get_beta_bounds_binary <- function(obs_draws, p, r_TstarU_restriction) {
   L <- get_L(obs_draws)
@@ -65,7 +62,6 @@ get_beta_bounds_binary <- function(obs_draws, p, r_TstarU_restriction) {
 #' @param n_observables Number of observable draws
 #'
 #' @return Upper and lower bounds of beta based on posterior draws
-#' @export
 #'
 get_beta_bounds_binary_post <- function(draws, n_observables) {
   reps <- nrow(draws$posterior) / nrow(draws$observables)
